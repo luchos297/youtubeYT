@@ -1,0 +1,14 @@
+/vendor/*
+/tmp/*
+/logs/*
+/webroot/files/imagenes/filename/*
+/webroot/files/audios/*
+/webroot/img/images/portadas/*
+/src/Template/Layout/Front_/*
+lessphp_*
+help.text
+environment.php
+nbproject/*
+/webroot/img/images/portadas/*
+/webroot/img/images/banners/filename/*
+/webroot/img/images/banners/filename_mobile/*

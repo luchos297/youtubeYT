@@ -1,0 +1,1 @@
+<?= $this->Html->image('/img/images/banners/160x600.gif'); ?>

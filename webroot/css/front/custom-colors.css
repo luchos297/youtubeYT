@@ -1,0 +1,45 @@
+
+/* Main Color Scheme */
+.block-comments #respond p input[type=submit],
+.writecomment p input[type=submit],
+.big-message h2,
+.tag-cloud-body a,
+ol#comments .user-author,
+#sidebar .widget > .ot-tabbed,
+.breaking-news .breaking-title,
+.widget .tagcloud a,
+.main-menu > ul > li > ul,
+.main-title a.button,
+.header .header-right,
+.ot-menu-toggle {
+	background-color: #3c98ca;
+}
+.tag-cloud-body a,
+.small-sidebar .widget > h3,
+.content a:hover,
+.main-title a.button,
+.article-links-block .item > h3,
+a {
+	color: #3c98ca;
+}
+.main-title {
+	border-left: 4px solid #3c98ca;
+}
+.article-links-block .item > h3,
+.small-sidebar .widget > h3 {
+	border-bottom: 3px solid #3c98ca;
+}
+.article-content p a.ot-link::before {
+	background-color: #3c98ca!important;
+}
+.article-content p a.ot-link::after {
+	border-bottom: 2px solid #3c98ca!important;
+}
+.single-photo-gallery .single-photo-thumbs a.active img {
+	border: 2px solid #3c98ca;
+}
+.block-comments #respond, .writecomment {
+	border-top: 3px solid #3c98ca;
+}
+
+

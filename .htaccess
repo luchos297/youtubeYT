@@ -1,0 +1,19 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine on
+    RewriteRule    ^$    webroot/    [L]
+    RewriteRule    (.*) webroot/$1    [L]
+</IfModule>
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresDefault A3600
+    <FilesMatch ".(gif|jpg|jpeg|png|swf|PNG|JPG|JPEG)$">
+        # 3 horas
+        ExpiresDefault A10800
+        Header append Cache-Control "public"
+    </FilesMatch>
+
+    # 21600 segundos => 3 horas
+    ExpiresByType text/css "access plus 21600 seconds"
+    ExpiresByType text/javascript "access plus 21600 seconds"
+    ExpiresByType application/x-javascript "access plus 21600 seconds"
+</IfModule>
