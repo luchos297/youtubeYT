@@ -27,10 +27,18 @@ class CancionesController extends AppController{
 	public function generarListadoCanciones($path, $resultadoDTO){        
         $listado = [];
 
-        $canciones = scandir($path);
 
-        
-		print_r($canciones);
+		$canciones = glob($path . "*");
+ 		for($i = 0; $i < count($canciones); $i++){
+
+
+ 			$name = end(explode('/', str_replace(".mp3", "", $canciones[$i])));
+ 			$listado = [$i => $name];
+ 		}
+
+
+      
+		print_r($listado);
 
 		die("JAJA");
 
