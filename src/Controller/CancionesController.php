@@ -3,6 +3,7 @@ namespace App\Controller;
 
 use Cake\Core\Exception\Exception;
 use Cake\ORM\TableRegistry;
+use simple_html_dom;
 require_once(ROOT . DS . 'vendor/getid3/getid3.php');
 
 
@@ -12,6 +13,10 @@ require_once(ROOT . DS . 'vendor/getid3/getid3.php');
  */
 class CancionesController extends AppController{
 
+    protected $html = NULL;
+    protected $streamContext = NULL;
+    protected $url_web = "https://www.youtube.com";
+    
 	public function initialize() {
         parent::initialize();
     }
@@ -118,94 +123,66 @@ class CancionesController extends AppController{
      * @return array mapping Listado de canciones con nombre, artista y urls.
      */
     public function recuperarLinksCanciones($resultadoDTO){
-    	$listado_links = [];
-        $url_web = "https://www.youtube.com";
-    	
     	set_time_limit(0);
     	
-
-    	if(!is_null($url_web)){
-    	    $state = $this->getStateHeaderXml($url);
+    	if(!is_null($this->url_web)){
+    	    $state = $this->getStateHeaderXml($this->url_web);
     	    
     	    if($state['ok']){
-    	        @$this->setHtmlDomFromString($url_web, $this->getStreamContext());
-    	        
-    	        if(!$this->html){
-    	           try{
-    	               if(count($links = $this->getLinksTemas()) > 0){
-    	                   foreach ($links as $link) {
-    	                       if($this->existTitle(trim(strip_tags($link['titulo']))) && !in_array(trim(strip_tags($link['titulo'])),$guardados[$this->codigo])){
-    	                           try{
-    	                               @$this->setHtmlDomFromString($rss->url . $link['link'], $this->getStreamContext());
-    	                               if($this->html){
-    	                                $articulo = $this->articulosTable->newEntity();
-    	                                $articulo->titulo = html_entity_decode(trim(strip_tags($link['titulo'])));
-    	                                $articulo->descripcion = $this->getDescripcion();
-    	                                $articulo->texto = $this->getContenido();
-    	                                $articulo->creado = date("Y-m-d H:i:s");
-    	                                $articulo->url_video = $this->getVideo();
-    	                                $articulo->categoria_id = $this->getCategorias();
-    	                                $articulo->publicado = $this->verificarIntegridadFechaNoticia($this->getFechaPublicado());
-    	                                $articulo->portal_id = $rss->portal_id;
-    	                                $articulo->habilitado = true;
-    	                                $articulo->url_rss = $rss->url.$link['link'];
-    	                                $articulo->visitas = 0;
-    	                                
-    	                                if ($this->articulosTable->save($articulo)) {
-    	                                    $imagenes = $this->getImagenes();
-    	                                    
-    	                                    foreach($imagenes as $imagen){
-    	                                        $imagen_path = $imagen['path'];
-    	                                        $image_caption = $imagen['descripcion'];
-    	                                        
-    	                                        if(preg_match('/.+\.(jpeg|jpg)/', $imagen_path)){
-    	                                            $imagen_name = ['x.jpg'];
-    	                                        }
-    	                                        elseif (preg_match('/.+\.(png)/', $imagen_path)){
-    	                                            $imagen_name = ['x.png'];
-    	                                        }
-    	                                        elseif (preg_match('/.+\.(gif)/', $imagen_path)){
-    	                                            $imagen_name = ['x.gif'];
-    	                                        }
-    	                                        else{
-    	                                            throw new Exception("Formato no soportado");
-    	                                        }
-    	                                        
-    	                                        end($imagen_name);
-    	                                        $imagen = $this->saveImagen($imagen_path, $image_caption, current($imagen_name), false);
-    	                                        if($imagen != null){
-    	                                            $this->getConnection()->insert('articulo_imagen', ['articulo_id' => $articulo->id,'imagen_id' => $imagen->id]);
-    	                                        }
-    	                                    }
-    	                                    $guardados[$this->codigo][] = trim($articulo->titulo);
-    	                                }
-    	                            }
-    	                        }
-    	                        catch(Exception $e){}
-    	                    }
-    	                }
-    	            }
-    	            else{
-    	                $guardados[$this->codigo][]= "Error: No se pudo obtener los links de los temas";
-    	            }
-    	        }
-    	        catch(Exception $e){}
-    	    }
-    	    else{
-    	        $guardados[$this->codigo]=$state['state'];
-    	    }
-    	}
+    	        foreach ($resultadoDTO['listado'] as $cancion) {
+     	            $criterio_busqueda = $this->url_web . "/results?search_query=" . str_replace(" ", "+", reset($cancion['title'])) . "+" . str_replace(" ", "+", reset($cancion['artist']));
+     	            
+     	            @$this->setHtmlDomFromString($criterio_busqueda, $this->getStreamContext());
 
-    	
-    	
-    	
-    	
-    	try{
-        
-    	    $resultadoDTO = ['error' => false, 'message' => "", 'listado' => $cancion_listado];
-    	}
-    	catch (Exception $ex) {
-    	    $resultadoDTO = ['error' => true, 'message' => $ex, 'listado' => []];
+     	            echo $criterio_busqueda;
+     	            $links_cancion = $this->html->find('#content', 0)->find('#container', 0);
+
+
+     	            
+
+
+            		var_dump($links_cancion);
+					break;
+
+    	            $links = $this->getLinksTemas();
+    	            
+        	        if(!$this->html && count($links) > 0){
+                       foreach ($links as $link) {
+                           try{
+                               @$this->setHtmlDomFromString($link, $this->getStreamContext());
+        	                   if($this->html){
+        	                       $cancion = $this->cancionesTable->newEntity();
+        	                       $cancion->url = 
+        	                       $cancion->video_id = 
+        	                       $cancion->title = 
+        	                       $cancion->artist = 
+        	                       $cancion->album = 
+        	                       $cancion->duration = 
+        	                       $cancion->year =
+        	                       $cancion->created = date("Y-m-d H:i:s");
+        	                       $cancion->fecha_publish = 
+        	                       $cancion->image_path = $this->getDescripcion();
+                                   $cancion->downloaded = false; 
+        	                          
+                                   $this->cancionesTable->save($cancion);
+                                   
+                                   
+                                   $resultadoDTO = ['error' => false, 'message' => "", 'listado' => $cancion_listado];
+      	                        }
+                            }
+                            catch (Exception $ex) {
+                                $resultadoDTO = ['error' => true, 'message' => $ex, 'listado' => []];
+                            }
+                       }
+        	       }
+        	       else{
+        	           $resultadoDTO['listado']['resultado'] = "No hubieron videos que concuerde con el especificado";
+        	       }
+    	       }
+    	   }
+  	       else{
+  	           $resultadoDTO = ['error' => true, 'message' => "El sitio no está disponible", 'listado' => []];
+   	       }
     	}
 
         return $resultadoDTO;
@@ -217,9 +194,9 @@ class CancionesController extends AppController{
      * @param array Lista de temas con nombre y artista.
      * @return array mapping Listado de canciones con nombre, artista, url y bandera de descarga.
      */    
-    public function getLinksTemas($temas){
-        $temas_links = [];
-    
+    public function getLinksTemas(){
+        $tema_links = [];
+
         try{
             $this->clearNode('.header-wrapper');
             $this->clearNode('.menu-wapper');
@@ -227,28 +204,56 @@ class CancionesController extends AppController{
             $this->clearNode('.banner');
             $this->clearNode('.separator');
             $this->clearNode('script');
-            
-            $portada_items = $this->html->find('.section-title');
+
+            $links_cancion = $this->html->find('#contents');
+
+            var_dump($links_cancion);
+            die;
+
             if(!is_null($portada_items)){
                 foreach($portada_items as $article){
                     if(!is_null($article->find('.title', 0)) && !is_null($article->find('.title', 0)->find('a', 0))){
                         $links[] = [
-                            'titulo' => html_entity_decode($article->find('.title', 0)->find('a', 0)->plaintext),
-                            'link' => $article->find('.title', 0)->find('a', 0)->href,
-                            'seccion' => $article->find('.section', 0)->plaintext
+                           'titulo' => html_entity_decode($article->find('.title', 0)->find('a', 0)->plaintext),
+                           'link' => $article->find('.title', 0)->find('a', 0)->href,
+                           'seccion' => $article->find('.section', 0)->plaintext
                         ];
                     }
                 }
             }
-            
         }
         catch (Exception $e) {}
     
+        return $tema_links;
+    }
     
+    /**
+     * Métodos referidos a chequear disponibilidad de la URL y obtener el DOM en una variable
+     *
+     * @param string url URL del sitio que se desea chequear.
+     * @return array DOM del sitio en una variable.
+     */
+    public function getStateHeaderXML($url){
+        $url_headers = @get_headers($url);
+        
+        if($url_headers[0] == 'HTTP/1.1 200 OK' or $url_headers[0] == 'HTTP/1.0 200 OK') {
+                $response = ['ok' => true, 'state' => $url_headers[0]];
+            }
+            else {
+                // Error
+                $response = ['ok' => false, 'state' => $url_headers[0]];
+            }
+            
+            return $response;
+    }
     
+    public function setHtmlDomFromString($url, $context){
+        $this->html = new simple_html_dom();
+        $this->html->load(@file_get_contents($url, false, $context), true);
+    }
     
-    
-        return $temas_links;
+    public function getStreamContext(){
+        return $this->streamContext;
     }
 
     /**
@@ -270,6 +275,15 @@ class CancionesController extends AppController{
     	}
 
         return $resultadoDTO;
+    }
+    
+    public function clearNode($selector){
+        
+        foreach ($this->html->find($selector) as $node) {
+            $node->outertext = '';
+        }
+        
+        $this->html->load($this->html->save());
     }
 
     /**
@@ -304,11 +318,9 @@ class CancionesController extends AppController{
     	if($path != ""){    		
     		$resultadoDTO = $this->generarListadoCanciones($path, $resultadoDTO);    		
     		$resultadoDTO = $this->filtrarListadoCanciones($resultadoDTO);    		
-    		$resultadoDTO = recuperarLinksCanciones($resultadoDTO);		
+    		$resultadoDTO = $this->recuperarLinksCanciones($resultadoDTO);		
 			
-			var_dump($resultadoDTO['listado']);/*
-			
-			$resultadoDTO = descargarLinksCanciones($resultadoDTO);
+			/*$resultadoDTO = descargarLinksCanciones($resultadoDTO);
 			$resultadoDTO = guardarLinksCanciones($resultadoDTO);*/
     	}
 
