@@ -1,11 +1,9 @@
 <?php
 namespace App\Model\Table;
 
-use App\Model\Entity\Usuario;
-use Cake\ORM\Query;
+use Cake\Auth\DefaultPasswordHasher;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
-use Cake\Auth\DefaultPasswordHasher;
 use Cake\Validation\Validator;
 
 /**

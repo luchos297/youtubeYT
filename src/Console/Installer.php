@@ -14,7 +14,7 @@
  */
 namespace App\Console;
 
-use Composer\Script\Event;
+use Cake\Event\Event;
 use Exception;
 
 /**

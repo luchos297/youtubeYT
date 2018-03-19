@@ -1,10 +1,9 @@
 <?php
 namespace App\Controller;
 
-use App\Controller\AppController;
-use Cake\ORM\TableRegistry;
 use Cake\Cache\Cache;
-use Cake\Core\Configure;
+use Cake\Core\Exception\Exception;
+use Cake\ORM\TableRegistry;
 
 /**
  * Noticias Controller

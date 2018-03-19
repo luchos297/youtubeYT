@@ -1,13 +1,10 @@
 <?php
 namespace App\Model\Table;
 
-use App\Model\Entity\Categoria;
-use Cake\ORM\Query;
-use Cake\ORM\RulesChecker;
+use Cake\Datasource\EntityInterface;
+use Cake\Event\Event;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
-use Cake\Event\Event;
-use Cake\Datasource\EntityInterface;
 use ArrayObject;
 /**
  * Categorias Model

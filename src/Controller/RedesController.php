@@ -1,14 +1,14 @@
 <?php
 namespace App\Controller;
 
-use App\Controller\AppController;
-use Cake\Core\Configure;
-use Cake\Filesystem\Folder;
-use Cake\ORM\TableRegistry;
 use Cake\Cache\Cache;
-use Cake\Utility\Inflector;
+use Cake\Core\Configure;
+use Cake\Core\Exception\Exception;
 use Cake\Mailer\Email;
-use simple_html_dom;
+use Cake\ORM\TableRegistry;
+use Cake\Utility\Inflector;
+use Facebook\Exceptions\FacebookResponseException;
+use Facebook\Exceptions\FacebookSDKException;
 /**
  * Rsses Controller
  *

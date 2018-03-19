@@ -1,15 +1,12 @@
 <?php
 namespace App\Model\Table;
 
-use App\Model\Entity\Articulo;
-use Cake\ORM\Query;
+use Cake\Datasource\ConnectionManager;
+use Cake\Datasource\EntityInterface;
+use Cake\Event\Event;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
-use Cake\ORM\TableRegistry;
 use Cake\Validation\Validator;
-use Cake\Event\Event;
-use Cake\Datasource\EntityInterface;
-use Cake\Datasource\ConnectionManager;
 use ArrayObject;
 
 /**
