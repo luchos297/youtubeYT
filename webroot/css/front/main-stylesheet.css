@@ -37,7 +37,6 @@ body {
 	margin: 0;
 	padding: 0;
 	color: #5e5e5e;
-	//background: url(../../img/images/background-1.jpg);
 }
 
 
@@ -1127,12 +1126,10 @@ nav.main-menu {
 .ot-slider .ot-slider-layer strong i {
 	font-style: normal;
 	display: block;
-	//position: absolute;
     float:left;
 	bottom: 100%;
 	padding: 4px 5px;
 	letter-spacing: 0px;
-	//font-size: 0.5em;
     font-size: 7.5pt;
 	background: #232323;
 	text-shadow: none!important;
@@ -1161,8 +1158,7 @@ nav.main-menu {
 .ot-slider .ot-slider-layer.fourth,
 .ot-slider .ot-slider-layer.third {
 	width: 34.126%;
-    //height: 30%;
-    //overflow: hidden;
+
 }
 
 .ot-slider .ot-slider-layer.fourth a strong,

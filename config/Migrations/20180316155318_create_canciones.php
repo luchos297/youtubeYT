@@ -23,7 +23,7 @@ class CreateCanciones extends AbstractMigration
             'limit' => 100,
             'null' => false,
         ]);
-        $table->addColumn('duration', 'string', [
+        $table->addColumn('name', 'string', [
             'default' => null,
             'limit' => 100,
             'null' => false,
@@ -38,25 +38,26 @@ class CreateCanciones extends AbstractMigration
             'limit' => 100,
             'null' => false,
         ]);
+        $table->addColumn('duration', 'string', [
+            'default' => null,
+            'limit' => 100,
+            'null' => false,
+        ]);        
         $table->addColumn('year', 'integer', [
             'default' => null,
             'limit' => 10,
             'null' => false,
         ]);        
-        $table->addColumn('fecha_scanned', 'datetime', [
-            'default' => null,
-            'null' => false,
-        ]);
-        $table->addColumn('fecha_publish', 'datetime', [
-            'default' => null,
-            'null' => false,
-        ]);
         $table->addColumn('image_path', 'string', [
             'default' => null,
             'limit' => 255,
             'null' => false,
         ]);
         $table->addColumn('downloaded', 'boolean', [
+            'default' => null,
+            'null' => false,
+        ]);
+        $table->addColumn('fecha_publish', 'datetime', [
             'default' => null,
             'null' => false,
         ]);

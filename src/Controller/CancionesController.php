@@ -4,8 +4,9 @@ namespace App\Controller;
 use Cake\Core\Exception\Exception;
 use Cake\ORM\TableRegistry;
 use simple_html_dom;
+use Google_Client;
+use Google_Service_YouTube;
 require_once(ROOT . DS . 'vendor/getid3/getid3.php');
-
 
 /**
  * Canciones Controller
@@ -116,74 +117,63 @@ class CancionesController extends AppController{
         return $resultadoDTO;
     }
 
-	/**
+     /**
      * Buscar para cada tema el enlace con ID con el siguiente patron: https://www.youtube.com/results?search_query=+criterio reemplazando los espacios por +
      *
      * @param array DTO con resultado del proceso, incluyendo un listado (array mapping) de canciones con nombre y artista filtrados.
      * @return array mapping Listado de canciones con nombre, artista y urls.
      */
-    public function recuperarLinksCanciones($resultadoDTO){
-    	set_time_limit(0);
-    	
-    	if(!is_null($this->url_web)){
-    	    $state = $this->getStateHeaderXml($this->url_web);
-    	    
-    	    if($state['ok']){
-    	        foreach ($resultadoDTO['listado'] as $cancion) {
-     	            $criterio_busqueda = $this->url_web . "/results?search_query=" . str_replace(" ", "+", reset($cancion['title'])) . "+" . str_replace(" ", "+", reset($cancion['artist']));
-     	            
-     	            @$this->setHtmlDomFromString($criterio_busqueda, $this->getStreamContext());
+    public function recuperarLinksCanciones($resultadoDTO){  
+        $listado = [];
+        
+        try {
+	    foreach ($resultadoDTO['listado'] as $cancion) {                
+                $search = str_replace(" ", "+", reset($cancion['title'])) . "+" . str_replace(" ", "+", reset($cancion['artist']));               
+                $criteria = [
+                    'q' => $search, 
+                    'maxResults' => '5'];
+        
+                //Declare all variables and oject that will be used to make all API requests.
+                $dev_key = 'AIzaSyCbLwIWQDllwFAKvnK7_HTfJAwE1fux824';
+                $youtube_client = new Google_Client();
+                $youtube_client->setDeveloperKey($dev_key);
+                $youtube_req = new Google_Service_YouTube($youtube_client);
+                $youtube_res = $youtube_req->search->listSearch('id,snippet', $criteria);
 
-     	            echo $criterio_busqueda;
-     	            $links_cancion = $this->html->find('#content', 0)->find('#container', 0);
+                print "<pre>";
+                print_r($youtube_res);
+                print "</pre>";
+                die;
 
 
-     	            
+                /*
+                $cancion = $this->cancionesTable->newEntity();
+                $cancion->url = ;
+                $cancion->video_id = ;
+                $cancion->name = ;
+                $cancion->artist = ;
+                $cancion->album = ;
+                $cancion->duration = ;
+                $cancion->image_path = ;
+                $cancion->downloaded = true;                
+                $cancion->fecha_publish = 
+                $cancion->creado = date("Y-m-d H:i:s");*/
 
+                if($this->cancionesTable->save($cancion)){
+                    $cancion = ['resultado' => 'La canción se guardó correctamente'];
+                }
+                else {
+                    $cancion = ['resultado' => 'Hubo un error al guardar la canción'];
+                }
+                
+                array_push($cancion, $listado);
+      	    }
 
-            		var_dump($links_cancion);
-					break;
-
-    	            $links = $this->getLinksTemas();
-    	            
-        	        if(!$this->html && count($links) > 0){
-                       foreach ($links as $link) {
-                           try{
-                               @$this->setHtmlDomFromString($link, $this->getStreamContext());
-        	                   if($this->html){
-        	                       $cancion = $this->cancionesTable->newEntity();
-        	                       $cancion->url = 
-        	                       $cancion->video_id = 
-        	                       $cancion->title = 
-        	                       $cancion->artist = 
-        	                       $cancion->album = 
-        	                       $cancion->duration = 
-        	                       $cancion->year =
-        	                       $cancion->created = date("Y-m-d H:i:s");
-        	                       $cancion->fecha_publish = 
-        	                       $cancion->image_path = $this->getDescripcion();
-                                   $cancion->downloaded = false; 
-        	                          
-                                   $this->cancionesTable->save($cancion);
-                                   
-                                   
-                                   $resultadoDTO = ['error' => false, 'message' => "", 'listado' => $cancion_listado];
-      	                        }
-                            }
-                            catch (Exception $ex) {
-                                $resultadoDTO = ['error' => true, 'message' => $ex, 'listado' => []];
-                            }
-                       }
-        	       }
-        	       else{
-        	           $resultadoDTO['listado']['resultado'] = "No hubieron videos que concuerde con el especificado";
-        	       }
-    	       }
-    	   }
-  	       else{
-  	           $resultadoDTO = ['error' => true, 'message' => "El sitio no está disponible", 'listado' => []];
-   	       }
-    	}
+      	    $resultadoDTO = ['error' => false, 'message' => "", 'listado' => $listado];            
+        }
+        catch (Exception $ex) {
+            $resultadoDTO = ['error' => true, 'message' => $ex, 'listado' => []];
+        }
 
         return $resultadoDTO;
     }
