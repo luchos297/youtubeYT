@@ -70,7 +70,8 @@ class CancionesController extends AppController{
                     'filesize' => $filesize, 
                     'sample_rate' => $sample_rate, 
                     'bitrate' => $bitrate,
-                    '$dataformat' => $dataformat];
+                    '$dataformat' => $dataformat,
+                    'resultado' => ''];
                 
                 array_push($listado, $cancion_procesada);
             }            
@@ -127,14 +128,15 @@ class CancionesController extends AppController{
      * @return array mapping Listado de canciones con nombre, artista y urls.
      */
     public function recuperarLinksCanciones($resultadoDTO){  
-        $listado = [];
         $image_path = WWW_ROOT . "files/audios/covers";
 
         try {            
             $state = $this->getStateHeaderXml($this->url_web);
             
             if($state['ok']){            
-                foreach ($resultadoDTO['listado'] as $cancion) {                
+                for ($i = 0; $i < count($resultadoDTO['listado']); $i++) {                
+                    $cancion = reset($resultadoDTO['listado']);
+
                     $search = str_replace(" ", "+", $cancion['title']) . "+" . str_replace(" ", "+", $cancion['artist']);               
                     $criteria = [
                         'q' => $search, 
@@ -165,10 +167,11 @@ class CancionesController extends AppController{
                         $cancion_to_save->sample_rate = $cancion['sample_rate'];
                         $cancion_to_save->bitrate = ($cancion['bitrate'] / 1000);
                         $cancion_to_save->dataformat = ($cancion['$dataformat']);                    
-                        $cancion_to_save->image_path = $video['snippet']['thumbnails']['high']['url'];
-                        $cancion_to_save->downloaded = true;
+                        $cancion_to_save->image_path = $video['snippet']['thumbnails']['high']['url'];                        
                         $cancion_to_save->fecha_publish = str_replace(["T", "Z"], " ", $video['snippet']['publishedAt']);
                         $cancion_to_save->creado = date("Y-m-d H:i:s");
+
+                        //ver porque no incrementa el id
 
                         //Save image into the disk
                         if (!is_dir($image_path)) {
@@ -180,24 +183,20 @@ class CancionesController extends AppController{
 
                         //Save object into the DB
                         if($this->Canciones->save($cancion_to_save)){
-                            $cancion = ['resultado' => 'La canción se guardó correctamente'];
+                            $resultadoDTO['listado'][$i]['resultado'] = 'La canción se guardó correctamente';
                         }
                         else {
-                            $cancion = ['resultado' => 'Hubo un error al guardar la canción'];
+                            $resultadoDTO['listado'][$i]['resultado'] = 'Hubo un error al guardar la canción';
                         }
                     }
                     else {
-                        $cancion = ['resultado' => 'No hubieron resultados'];
+                        $resultadoDTO['listado'][$i]['resultado'] = 'No hubieron resultados';
                     }
-                    
-                    array_push($cancion, $listado);
                 }
             }
             else {
                 $resultadoDTO = ['error' => true, 'message' => "El sitio no está disponible", 'listado' => []];
             }
-            
-      	    $resultadoDTO = ['error' => false, 'message' => NULL, 'listado' => $listado];            
         }
         catch (Exception $ex) {
             $resultadoDTO = ['error' => true, 'message' => $ex, 'listado' => []];
@@ -307,13 +306,9 @@ class CancionesController extends AppController{
             print_r($resultadoDTO);
             print "</pre>";
             die;
-
-            //descargar imagen thumbnail
-            
-            
             
             /*$resultadoDTO = descargarLinksCanciones($resultadoDTO);
-			$resultadoDTO = guardarLinksCanciones($resultadoDTO);*/
+            $resultadoDTO = guardarLinksCanciones($resultadoDTO);*/
     	}
 
     	//seteamos las variables en la vista
