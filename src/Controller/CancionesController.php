@@ -3,9 +3,9 @@ namespace App\Controller;
 
 use Cake\Core\Exception\Exception;
 use Cake\ORM\TableRegistry;
-use simple_html_dom;
 use Google_Client;
 use Google_Service_YouTube;
+use DateTime;
 require_once(ROOT . DS . 'vendor/getid3/getid3.php');
 
 /**
@@ -17,6 +17,7 @@ class CancionesController extends AppController{
     protected $html = NULL;
     protected $streamContext = NULL;
     protected $url_web = "https://www.youtube.com";
+    protected $path = WWW_ROOT . "files/audios/";
     
 	public function initialize() {
         parent::initialize();
@@ -33,32 +34,33 @@ class CancionesController extends AppController{
      * @param array DTO con resultado del proceso.
      * @return array mapping Listado de canciones con nombre y artista.
      */
-	public function generarListadoCanciones($path, $resultadoDTO){        
+	public function generarListadoCanciones($resultadoDTO){        
         $listado = [];
 
         try{
-            $canciones = glob($path . "*");
+            $canciones = glob($this->path . "*.{*}", GLOB_BRACE);
             
             for($i = 0; $i < count($canciones); $i++){
                 $cancion = str_replace(".mp3", "", $canciones[$i]);
                 $name = explode('/', $canciones[$i]);
                 $name = end($name);
-                $name_path = $path . DS . $name;
+                $name_path = $this->path . DS . $name;
                 
                 //Lectura de tag ID3
                 $id3 = new \getID3();
                 $cancion_id3 = $id3->analyze($name_path);
-                $data_head = $cancion_id3['tags']['id3v1'];
-                $data_info = $cancion_id3['audio']['streams'];
+                $data_head = $cancion_id3['tags']['id3v2'];
+                $data_info = $cancion_id3['audio'];
                 
-                $title = (array_key_exists('title', $data_head) != false) ? $data_head['title'] : "";
-                $artist = (array_key_exists('artist', $data_head) != false) ? $data_head['artist'] : "";
-                $album = (array_key_exists('album', $data_head) != false) ? $data_head['album'] : "";
-                $year = (array_key_exists('year', $data_head) != false) ? $data_head['year'] : "";
-                $genre = (array_key_exists('genre', $data_head) != false) ? $data_head['genre'] : "";
+                $title = (array_key_exists('title', $data_head) != false) ? reset($data_head['title']) : "";
+                $artist = (array_key_exists('artist', $data_head) != false) ? reset($data_head['artist']) : "";
+                $album = (array_key_exists('album', $data_head) != false) ? reset($data_head['album']) : "";
+                $year = (array_key_exists('year', $data_head) != false) ? reset($data_head['year']) : "";
+                $genre = (array_key_exists('genre', $data_head) != false) ? reset($data_head['genre']) : "";
                 $filesize = (array_key_exists('filesize', $cancion_id3) != false) ? $cancion_id3['filesize'] : "";
-                $sample_rate = (array_key_exists('sample_rate', $data_info) != false) ? reset($data_info)['sample_rate'] : "";
-                $bitrate = (array_key_exists('bitrate', $cancion_id3) != false) ? reset($data_info)['bitrate'] : "";
+                $sample_rate = (array_key_exists('sample_rate', $data_info) != false) ? $data_info['sample_rate'] : "";
+                $bitrate = (array_key_exists('bitrate', $data_info) != false) ? $data_info['bitrate'] : "";
+                $dataformat = (array_key_exists('dataformat', $data_info) != false) ? $data_info['dataformat'] : "";
                 
                 $cancion_procesada = ['title' => $title, 
                     'artist' => $artist, 
@@ -67,12 +69,13 @@ class CancionesController extends AppController{
                     'genre' => $genre,
                     'filesize' => $filesize, 
                     'sample_rate' => $sample_rate, 
-                    'bitrate' => $bitrate];
+                    'bitrate' => $bitrate,
+                    '$dataformat' => $dataformat];
                 
                 array_push($listado, $cancion_procesada);
             }            
 
-            $resultadoDTO = ['error' => false, 'message' => "", 'listado' => $listado];
+            $resultadoDTO = ['error' => false, 'message' => NULL, 'listado' => $listado];
         }
         catch (Exception $ex) {
             $resultadoDTO = ['error' => true, 'message' => $ex, 'listado' => []];
@@ -108,7 +111,7 @@ class CancionesController extends AppController{
 		        $i++;
 		    }
 		    
-		    $resultadoDTO = ['error' => false, 'message' => "", 'listado' => $cancion_listado];
+		    $resultadoDTO = ['error' => false, 'message' => NULL, 'listado' => $cancion_listado];
 		}
 		catch (Exception $ex) {
 		    $resultadoDTO = ['error' => true, 'message' => $ex, 'listado' => []];
@@ -125,51 +128,76 @@ class CancionesController extends AppController{
      */
     public function recuperarLinksCanciones($resultadoDTO){  
         $listado = [];
-        
-        try {
-	    foreach ($resultadoDTO['listado'] as $cancion) {                
-                $search = str_replace(" ", "+", reset($cancion['title'])) . "+" . str_replace(" ", "+", reset($cancion['artist']));               
-                $criteria = [
-                    'q' => $search, 
-                    'maxResults' => '5'];
-        
-                //Declare all variables and oject that will be used to make all API requests.
-                $dev_key = 'AIzaSyCbLwIWQDllwFAKvnK7_HTfJAwE1fux824';
-                $youtube_client = new Google_Client();
-                $youtube_client->setDeveloperKey($dev_key);
-                $youtube_req = new Google_Service_YouTube($youtube_client);
-                $youtube_res = $youtube_req->search->listSearch('id,snippet', $criteria);
+        $image_path = WWW_ROOT . "files/audios/covers";
 
-                print "<pre>";
-                print_r($youtube_res);
-                print "</pre>";
-                die;
+        try {            
+            $state = $this->getStateHeaderXml($this->url_web);
+            
+            if($state['ok']){            
+                foreach ($resultadoDTO['listado'] as $cancion) {                
+                    $search = str_replace(" ", "+", $cancion['title']) . "+" . str_replace(" ", "+", $cancion['artist']);               
+                    $criteria = [
+                        'q' => $search, 
+                        'maxResults' => '2'];
+                    
+                    //Declare all variables and oject that will be used to make all API requests.
+                    $dev_key = 'AIzaSyCbLwIWQDllwFAKvnK7_HTfJAwE1fux824';
+                    $youtube_client = new Google_Client();
+                    $youtube_client->setDeveloperKey($dev_key);
+                    $youtube_req = new Google_Service_YouTube($youtube_client);
+                    $youtube_res = $youtube_req->search->listSearch('id, snippet', $criteria);
+                    $video_res = $youtube_res['items'];
+                    
+                    if(count($video_res) > 0){
+                        $video = reset($video_res);
 
+                        //Create the song object with all the data
+                        $cancion_to_save = $this->Canciones->newEntity();
+                        $cancion_to_save->url = $this->url_web . "/watch?v=" . $video['id']['videoId'];
+                        $cancion_to_save->video_id = $video['id']['videoId'];
+                        $cancion_to_save->title = $cancion['title'];
+                        $cancion_to_save->artist = $cancion['artist'];
+                        $cancion_to_save->album = $cancion['album'];
+                        $cancion_to_save->duration = "";
+                        $cancion_to_save->year = $cancion['year'];                    
+                        $cancion_to_save->genre = $cancion['genre'];
+                        $cancion_to_save->filesize = round(($cancion['filesize'] / 1048576), 2);
+                        $cancion_to_save->sample_rate = $cancion['sample_rate'];
+                        $cancion_to_save->bitrate = ($cancion['bitrate'] / 1000);
+                        $cancion_to_save->dataformat = ($cancion['$dataformat']);                    
+                        $cancion_to_save->image_path = $video['snippet']['thumbnails']['high']['url'];
+                        $cancion_to_save->downloaded = true;
+                        $cancion_to_save->fecha_publish = str_replace(["T", "Z"], " ", $video['snippet']['publishedAt']);
+                        $cancion_to_save->creado = date("Y-m-d H:i:s");
 
-                /*
-                $cancion = $this->cancionesTable->newEntity();
-                $cancion->url = ;
-                $cancion->video_id = ;
-                $cancion->name = ;
-                $cancion->artist = ;
-                $cancion->album = ;
-                $cancion->duration = ;
-                $cancion->image_path = ;
-                $cancion->downloaded = true;                
-                $cancion->fecha_publish = 
-                $cancion->creado = date("Y-m-d H:i:s");*/
+                        //Save image into the disk
+                        if (!is_dir($image_path)) {
+                            mkdir($image_path, 0777, true);
+                        }
+                        
+                        $image = file_get_contents($video['snippet']['thumbnails']['high']['url']);
+                        file_put_contents($image_path, $image);                        
 
-                if($this->cancionesTable->save($cancion)){
-                    $cancion = ['resultado' => 'La canción se guardó correctamente'];
+                        //Save object into the DB
+                        if($this->Canciones->save($cancion_to_save)){
+                            $cancion = ['resultado' => 'La canción se guardó correctamente'];
+                        }
+                        else {
+                            $cancion = ['resultado' => 'Hubo un error al guardar la canción'];
+                        }
+                    }
+                    else {
+                        $cancion = ['resultado' => 'No hubieron resultados'];
+                    }
+                    
+                    array_push($cancion, $listado);
                 }
-                else {
-                    $cancion = ['resultado' => 'Hubo un error al guardar la canción'];
-                }
-                
-                array_push($cancion, $listado);
-      	    }
-
-      	    $resultadoDTO = ['error' => false, 'message' => "", 'listado' => $listado];            
+            }
+            else {
+                $resultadoDTO = ['error' => true, 'message' => "El sitio no está disponible", 'listado' => []];
+            }
+            
+      	    $resultadoDTO = ['error' => false, 'message' => NULL, 'listado' => $listado];            
         }
         catch (Exception $ex) {
             $resultadoDTO = ['error' => true, 'message' => $ex, 'listado' => []];
@@ -177,46 +205,7 @@ class CancionesController extends AppController{
 
         return $resultadoDTO;
     }
-    
-    /**
-     * Obtiene los links de cada tema que haya en la lista de busqueda
-     *
-     * @param array Lista de temas con nombre y artista.
-     * @return array mapping Listado de canciones con nombre, artista, url y bandera de descarga.
-     */    
-    public function getLinksTemas(){
-        $tema_links = [];
-
-        try{
-            $this->clearNode('.header-wrapper');
-            $this->clearNode('.menu-wapper');
-            $this->clearNode('.footer-wrapper');
-            $this->clearNode('.banner');
-            $this->clearNode('.separator');
-            $this->clearNode('script');
-
-            $links_cancion = $this->html->find('#contents');
-
-            var_dump($links_cancion);
-            die;
-
-            if(!is_null($portada_items)){
-                foreach($portada_items as $article){
-                    if(!is_null($article->find('.title', 0)) && !is_null($article->find('.title', 0)->find('a', 0))){
-                        $links[] = [
-                           'titulo' => html_entity_decode($article->find('.title', 0)->find('a', 0)->plaintext),
-                           'link' => $article->find('.title', 0)->find('a', 0)->href,
-                           'seccion' => $article->find('.section', 0)->plaintext
-                        ];
-                    }
-                }
-            }
-        }
-        catch (Exception $e) {}
-    
-        return $tema_links;
-    }
-    
+        
     /**
      * Métodos referidos a chequear disponibilidad de la URL y obtener el DOM en una variable
      *
@@ -226,24 +215,16 @@ class CancionesController extends AppController{
     public function getStateHeaderXML($url){
         $url_headers = @get_headers($url);
         
-        if($url_headers[0] == 'HTTP/1.1 200 OK' or $url_headers[0] == 'HTTP/1.0 200 OK') {
-                $response = ['ok' => true, 'state' => $url_headers[0]];
-            }
-            else {
-                // Error
-                $response = ['ok' => false, 'state' => $url_headers[0]];
-            }
-            
-            return $response;
-    }
-    
-    public function setHtmlDomFromString($url, $context){
-        $this->html = new simple_html_dom();
-        $this->html->load(@file_get_contents($url, false, $context), true);
-    }
-    
-    public function getStreamContext(){
-        return $this->streamContext;
+        if ($url_headers[0] == 'HTTP/1.1 200 OK' or $url_headers[0] == 'HTTP/1.0 200 OK') {
+            //Success
+            $response = ['ok' => true, 'state' => $url_headers[0]];
+        }
+        else {
+            //Error
+            $response = ['ok' => false, 'state' => $url_headers[0]];
+        }
+
+        return $response;
     }
 
     /**
@@ -302,15 +283,36 @@ class CancionesController extends AppController{
     public function index(){
     	$resultadoDTO = ["", "", []];
     	$listado = [];
-    	$listado_filtrado_guardados = [];
-    	$path = WWW_ROOT . "files/audios/";
+    	$listado_filtrado_guardados = [];    	
 
-    	if($path != ""){    		
-    		$resultadoDTO = $this->generarListadoCanciones($path, $resultadoDTO);    		
-    		$resultadoDTO = $this->filtrarListadoCanciones($resultadoDTO);    		
-    		$resultadoDTO = $this->recuperarLinksCanciones($resultadoDTO);		
-			
-			/*$resultadoDTO = descargarLinksCanciones($resultadoDTO);
+    	if($this->path != ""){    		
+            $resultadoDTO = $this->generarListadoCanciones($resultadoDTO);
+
+            echo "GENERAR";
+            print "<pre>";
+            print_r($resultadoDTO);
+            print "</pre>";        
+
+            $resultadoDTO = $this->filtrarListadoCanciones($resultadoDTO);
+
+            echo "FILTRAR";
+            print "<pre>";
+            print_r($resultadoDTO);
+            print "</pre>";            
+            
+            $resultadoDTO = $this->recuperarLinksCanciones($resultadoDTO);
+
+            echo "RECUPERAR";
+            print "<pre>";
+            print_r($resultadoDTO);
+            print "</pre>";
+            die;
+
+            //descargar imagen thumbnail
+            
+            
+            
+            /*$resultadoDTO = descargarLinksCanciones($resultadoDTO);
 			$resultadoDTO = guardarLinksCanciones($resultadoDTO);*/
     	}
 

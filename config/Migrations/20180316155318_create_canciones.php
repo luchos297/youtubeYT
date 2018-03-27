@@ -23,7 +23,7 @@ class CreateCanciones extends AbstractMigration
             'limit' => 100,
             'null' => false,
         ]);
-        $table->addColumn('name', 'string', [
+        $table->addColumn('title', 'string', [
             'default' => null,
             'limit' => 100,
             'null' => false,
@@ -47,7 +47,32 @@ class CreateCanciones extends AbstractMigration
             'default' => null,
             'limit' => 10,
             'null' => false,
-        ]);        
+        ]);
+        $table->addColumn('genre', 'string', [
+            'default' => null,
+            'limit' => 50,
+            'null' => false,
+        ]); 
+        $table->addColumn('filesize', 'integer', [
+            'default' => null,
+            'limit' => 50,
+            'null' => false,
+        ]); 
+        $table->addColumn('sample_rate', 'integer', [
+            'default' => null,
+            'limit' => 50,
+            'null' => false,
+        ]); 
+        $table->addColumn('bitrate', 'integer', [
+            'default' => null,
+            'limit' => 50,
+            'null' => false,
+        ]); 
+        $table->addColumn('dataformat', 'string', [
+            'default' => null,
+            'limit' => 15,
+            'null' => false,
+        ]);
         $table->addColumn('image_path', 'string', [
             'default' => null,
             'limit' => 255,
