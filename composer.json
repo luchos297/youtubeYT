@@ -15,8 +15,7 @@
         "elboletaire/less-cake-plugin": "dev-master",
         "facebook/php-sdk-v4": "^5.0",
         "j7mbo/twitter-api-php": "dev-master",
-	    "neitanod/forceutf8": "dev-master",
-        "google/apiclient": "dev-master"
+	   "neitanod/forceutf8": "dev-master"
     },
     "require-dev": {
         "psy/psysh": "@stable",

@@ -40,6 +40,8 @@ class CancionesController extends AppController{
         try{
             $canciones = glob($this->path . "*.{*}", GLOB_BRACE);
             
+            //ver swtich de formatos varios (mp3, mp4, aac, etc)
+            
             for($i = 0; $i < count($canciones); $i++){
                 $cancion = str_replace(".mp3", "", $canciones[$i]);
                 $name = explode('/', $canciones[$i]);
@@ -55,13 +57,13 @@ class CancionesController extends AppController{
                 $title = (array_key_exists('title', $data_head) != false) ? reset($data_head['title']) : "";
                 $artist = (array_key_exists('artist', $data_head) != false) ? reset($data_head['artist']) : "";
                 $album = (array_key_exists('album', $data_head) != false) ? reset($data_head['album']) : "";
-                $year = (array_key_exists('year', $data_head) != false) ? reset($data_head['year']) : "";
+                $year = (array_key_exists('year', $data_head) != false) ? reset($data_head['year']) : 0;
                 $genre = (array_key_exists('genre', $data_head) != false) ? reset($data_head['genre']) : "";
-                $filesize = (array_key_exists('filesize', $cancion_id3) != false) ? $cancion_id3['filesize'] : "";
-                $sample_rate = (array_key_exists('sample_rate', $data_info) != false) ? $data_info['sample_rate'] : "";
-                $bitrate = (array_key_exists('bitrate', $data_info) != false) ? $data_info['bitrate'] : "";
+                $filesize = (array_key_exists('filesize', $cancion_id3) != false) ? round(($cancion_id3['filesize'] / 1048576), 2) : 0;
+                $sample_rate = (array_key_exists('sample_rate', $data_info) != false) ? $data_info['sample_rate'] : 0;
+                $bitrate = (array_key_exists('bitrate', $data_info) != false) ? round(($data_info['bitrate'] / 1000), 2) : 0;
                 $dataformat = (array_key_exists('dataformat', $data_info) != false) ? $data_info['dataformat'] : "";
-                
+
                 $cancion_procesada = ['title' => $title, 
                     'artist' => $artist, 
                     'album' => $album, 
@@ -95,10 +97,12 @@ class CancionesController extends AppController{
         $listado_filtrado = [];
         $cancion_listado = $resultadoDTO['listado'];
 
+                //mejorar la filtracion de los temas ya escaneados agregando un nuevo campo y comprobando por el mismo (agregar sql en repo para tener a mano)
+        
 		try{			
 		    $canciones_descargadas = TableRegistry::get('Canciones')
 		    ->find('all')
-		    ->where(['Canciones.downloaded'=> FALSE, 'Canciones.fecha_scanned' <= new \DateTime])->toArray();
+		    ->where(['Canciones.downloaded' => FALSE, 'Canciones.fecha_scanned' <= new \DateTime])->toArray();
 		    
 		    foreach($cancion_listado as $cancion_a_procesar){
 		        $i = 0;
@@ -163,15 +167,15 @@ class CancionesController extends AppController{
                         $cancion_to_save->duration = "";
                         $cancion_to_save->year = $cancion['year'];                    
                         $cancion_to_save->genre = $cancion['genre'];
-                        $cancion_to_save->filesize = round(($cancion['filesize'] / 1048576), 2);
+                        $cancion_to_save->filesize = $cancion['filesize'];
                         $cancion_to_save->sample_rate = $cancion['sample_rate'];
-                        $cancion_to_save->bitrate = ($cancion['bitrate'] / 1000);
+                        $cancion_to_save->bitrate = $cancion['bitrate'];
                         $cancion_to_save->dataformat = ($cancion['$dataformat']);                    
                         $cancion_to_save->image_path = $video['snippet']['thumbnails']['high']['url'];                        
                         $cancion_to_save->fecha_publish = str_replace(["T", "Z"], " ", $video['snippet']['publishedAt']);
                         $cancion_to_save->creado = date("Y-m-d H:i:s");
 
-                        //ver porque no incrementa el id
+                        //ver porque no incrementa el id ni guarda los covers
 
                         //Save image into the disk
                         if (!is_dir($image_path)) {
