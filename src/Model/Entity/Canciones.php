@@ -3,49 +3,25 @@ namespace App\Model\Entity;
 
 use Cake\ORM\Entity;
 
-
-$validator
-->requirePresence('fecha_scanned', 'create')
-->notEmpty('fecha_scanned');
-
-$validator
-->requirePresence('fecha_publish', 'create')
-->notEmpty('fecha_publish');
-
-$validator
-->requirePresence('image_path', 'create')
-->notEmpty('image_path');
-
-$validator
-->requirePresence('downloaded', 'create')
-->notEmpty('downloaded');
-
-$validator
-->dateTime('creado')
-->requirePresence('creado', 'create')
-->notEmpty('creado');
-
-$validator
-->dateTime('modificado')
-->requirePresence('modificado', 'create')
-->notEmpty('modificado');
-
-
-
 /**
  * Canale Entity.
  *
  * @property int $id
  * @property string $url
  * @property string $video_id
- * @property string $duration
- * @property string $artist
+ * @property string $title
+ * @property string $$artist
  * @property string $album
- * @property integer $year
- * @property datetime $fecha_scanned
- * @property datetime $fecha_publish
+ * @property string $duration
+ * @property int $year
+ * @property string $genre
+ * @property int $filesize
+ * @property int $sample_rate
+ * @property int $bitrate
+ * @property string $dataformat
  * @property string $image_path
  * @property boolean $downloaded
+ * @property datetime $fecha_publish
  * @property \Cake\I18n\Time $creado
  * @property \Cake\I18n\Time $modificado
  */

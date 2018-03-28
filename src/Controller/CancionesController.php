@@ -39,9 +39,7 @@ class CancionesController extends AppController{
 
         try{
             $canciones = glob($this->path . "*.{*}", GLOB_BRACE);
-            
-            //ver swtich de formatos varios (mp3, mp4, aac, etc)
-            
+
             for($i = 0; $i < count($canciones); $i++){
                 $cancion = str_replace(".mp3", "", $canciones[$i]);
                 $name = explode('/', $canciones[$i]);
@@ -51,24 +49,46 @@ class CancionesController extends AppController{
                 //Lectura de tag ID3
                 $id3 = new \getID3();
                 $cancion_id3 = $id3->analyze($name_path);
-                $data_head = $cancion_id3['tags']['id3v2'];
-                $data_info = $cancion_id3['audio'];
-                
-                $title = (array_key_exists('title', $data_head) != false) ? reset($data_head['title']) : "";
-                $artist = (array_key_exists('artist', $data_head) != false) ? reset($data_head['artist']) : "";
-                $album = (array_key_exists('album', $data_head) != false) ? reset($data_head['album']) : "";
-                $year = (array_key_exists('year', $data_head) != false) ? reset($data_head['year']) : 0;
-                $genre = (array_key_exists('genre', $data_head) != false) ? reset($data_head['genre']) : "";
-                $filesize = (array_key_exists('filesize', $cancion_id3) != false) ? round(($cancion_id3['filesize'] / 1048576), 2) : 0;
-                $sample_rate = (array_key_exists('sample_rate', $data_info) != false) ? $data_info['sample_rate'] : 0;
-                $bitrate = (array_key_exists('bitrate', $data_info) != false) ? round(($data_info['bitrate'] / 1000), 2) : 0;
-                $dataformat = (array_key_exists('dataformat', $data_info) != false) ? $data_info['dataformat'] : "";
+
+                switch($cancion_id3['fileformat']) { 
+                    case "mp3":
+                        $data_head = $cancion_id3['tags']['id3v2'];
+                        $data_info = $cancion_id3['audio'];
+
+                        $title = (array_key_exists('title', $data_head) != false) ? reset($data_head['title']) : "";
+                        $artist = (array_key_exists('artist', $data_head) != false) ? reset($data_head['artist']) : "";
+                        $album = (array_key_exists('album', $data_head) != false) ? reset($data_head['album']) : "";
+                        $year = (array_key_exists('year', $data_head) != false) ? reset($data_head['year']) : 2010;
+                        $genre = (array_key_exists('genre', $data_head) != false) ? reset($data_head['genre']) : "";
+                        $duration = (array_key_exists('playtime_string', $cancion_id3) != false) ? $cancion_id3['playtime_string'] : "";
+                        $filesize = (array_key_exists('filesize', $cancion_id3) != false) ? round(($cancion_id3['filesize'] / 1048576), 2) : 0;
+                        $sample_rate = (array_key_exists('sample_rate', $data_info) != false) ? $data_info['sample_rate'] : 0;
+                        $bitrate = (array_key_exists('bitrate', $data_info) != false) ? round(($data_info['bitrate'] / 1000), 2) : 0;
+                        $dataformat = (array_key_exists('dataformat', $data_info) != false) ? $data_info['dataformat'] : "";                
+                        break;
+                    case "mp4":
+                        $data_head = $cancion_id3['tags']['quicktime'];
+                        $data_info = $cancion_id3['audio'];
+
+                        $title = (array_key_exists('title', $data_head) != false) ? reset($data_head['title']) : "";
+                        $artist = (array_key_exists('artist', $data_head) != false) ? reset($data_head['artist']) : "";
+                        $album = (array_key_exists('album', $data_head) != false) ? reset($data_head['album']) : "";
+                        $year = (array_key_exists('year', $data_head) != false) ? reset($data_head['year']) : 2010;
+                        $genre = (array_key_exists('genre', $data_head) != false) ? reset($data_head['genre']) : "";
+                        $duration = (array_key_exists('playtime_string', $cancion_id3) != false) ? $cancion_id3['playtime_string'] : "";
+                        $filesize = (array_key_exists('filesize', $cancion_id3) != false) ? round(($cancion_id3['filesize'] / 1048576), 2) : 0;
+                        $sample_rate = (array_key_exists('sample_rate', $data_info) != false) ? $data_info['sample_rate'] : 0;
+                        $bitrate = (array_key_exists('bitrate', $data_info) != false) ? round(($data_info['bitrate'] / 1000), 2) : 0;
+                        $dataformat = (array_key_exists('dataformat', $data_info) != false) ? $data_info['dataformat'] : "";
+                        break;
+                }                
 
                 $cancion_procesada = ['title' => $title, 
                     'artist' => $artist, 
                     'album' => $album, 
                     'year' => $year, 
                     'genre' => $genre,
+                    'duration' => $duration,
                     'filesize' => $filesize, 
                     'sample_rate' => $sample_rate, 
                     'bitrate' => $bitrate,
@@ -94,33 +114,35 @@ class CancionesController extends AppController{
      * @return array mapping Listado de canciones con nombre y artista filtrados.
      */
     public function filtrarListadoCanciones($resultadoDTO){       
+        $listado = $resultadoDTO['listado'];
         $listado_filtrado = [];
-        $cancion_listado = $resultadoDTO['listado'];
 
-                //mejorar la filtracion de los temas ya escaneados agregando un nuevo campo y comprobando por el mismo (agregar sql en repo para tener a mano)
+        //mejorar la filtracion de los temas ya escaneados agregando un nuevo campo y comprobando por el mismo (agregar sql en repo para tener a mano)
         
-		try{			
-		    $canciones_descargadas = TableRegistry::get('Canciones')
-		    ->find('all')
-		    ->where(['Canciones.downloaded' => FALSE, 'Canciones.fecha_scanned' <= new \DateTime])->toArray();
-		    
-		    foreach($cancion_listado as $cancion_a_procesar){
-		        $i = 0;
-		        foreach($canciones_descargadas as $cancion_a_comparar){
-		            if(strtolower(reset($cancion_a_procesar['title'])) === strtolower(($cancion_a_comparar->title)) &&
-		                strtolower(reset($cancion_a_procesar['album'])) === strtolower(($cancion_a_comparar->album)) &&
-		                strtolower(reset($cancion_a_procesar['artist'])) === strtolower(($cancion_a_comparar->artist))){
-		                    unset($cancion_listado[$i]);
-		            }
-		        }
-		        $i++;
-		    }
-		    
-		    $resultadoDTO = ['error' => false, 'message' => NULL, 'listado' => $cancion_listado];
-		}
-		catch (Exception $ex) {
-		    $resultadoDTO = ['error' => true, 'message' => $ex, 'listado' => []];
-		}
+        try {
+            for ($i = 0; $i < count($listado); $i++) {
+                $cancion_a_procesar = $listado[$i];
+                $title = $cancion_a_procesar['title'];
+                $artist = $cancion_a_procesar['album'];
+                
+                $cancion_existente = TableRegistry::get('Canciones')
+                    ->find('all')
+                    ->where(['Canciones.title' => $title, 'Canciones.artist' => '%' + $artist + '%'])->toArray();
+
+                echo $title . " - " . $artist;
+                var_dump($cancion_existente);
+                
+                break;
+                if (count($cancion_existente) == 0) {
+                    array_push($listado_filtrado, $cancion_a_procesar);
+                }
+            }
+
+            $resultadoDTO = ['error' => false, 'message' => NULL, 'listado' => $listado_filtrado];
+        }
+        catch (Exception $ex) {
+            $resultadoDTO = ['error' => true, 'message' => $ex, 'listado' => []];
+        }
 
         return $resultadoDTO;
     }
@@ -139,7 +161,7 @@ class CancionesController extends AppController{
             
             if($state['ok']){            
                 for ($i = 0; $i < count($resultadoDTO['listado']); $i++) {                
-                    $cancion = reset($resultadoDTO['listado']);
+                    $cancion = $resultadoDTO['listado'][$i];
 
                     $search = str_replace(" ", "+", $cancion['title']) . "+" . str_replace(" ", "+", $cancion['artist']);               
                     $criteria = [
@@ -164,7 +186,7 @@ class CancionesController extends AppController{
                         $cancion_to_save->title = $cancion['title'];
                         $cancion_to_save->artist = $cancion['artist'];
                         $cancion_to_save->album = $cancion['album'];
-                        $cancion_to_save->duration = "";
+                        $cancion_to_save->duration = $cancion['duration'];
                         $cancion_to_save->year = $cancion['year'];                    
                         $cancion_to_save->genre = $cancion['genre'];
                         $cancion_to_save->filesize = $cancion['filesize'];
@@ -174,8 +196,6 @@ class CancionesController extends AppController{
                         $cancion_to_save->image_path = $video['snippet']['thumbnails']['high']['url'];                        
                         $cancion_to_save->fecha_publish = str_replace(["T", "Z"], " ", $video['snippet']['publishedAt']);
                         $cancion_to_save->creado = date("Y-m-d H:i:s");
-
-                        //ver porque no incrementa el id ni guarda los covers
 
                         //Save image into the disk
                         if (!is_dir($image_path)) {
