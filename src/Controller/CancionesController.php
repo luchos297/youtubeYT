@@ -282,18 +282,12 @@ class CancionesController extends AppController{
             
                 $bean = new \YouTubeBean();
                 $bean->setVideoId($cancion['video_id']);
-                $bean->setVideoFormat("43");
+                $bean->setVideoFormat("5");
                 $bean->setMethod("curl");
-                $bean->setDestination($video_path . $cancion['video_id']);
-                
+                $bean->setDestination($video_path);
+
                 $downloader = new \YouTubeVideoDownloader();
                 $downloader->startDownload($bean);
-                
-                echo "GENERAR";
-            print "<pre>";
-            print_r($downloader);
-            print "</pre>"; 
-            break;
                 
                 //Update downloaded's flag in BD
                 $cancion_to_update = TableRegistry::get('Canciones')->find('all')
@@ -311,10 +305,10 @@ class CancionesController extends AppController{
             }
     	}
     	catch (Exception $ex) {
-    	    $resultadoDTO_recargado = ['error' => true, 'message' => $ex, 'listado' => []];
+    	    $resultadoDTO_recuperado = ['error' => true, 'message' => $ex, 'listado' => []];
     	}
 
-        return $resultadoDTO_recargado;
+        return $resultadoDTO_recuperado;
     }
 
     /**
