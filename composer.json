@@ -13,10 +13,11 @@
         "xety/cake3-upload": "1.*",
         "davidyell/proffer": "~0.4",
         "elboletaire/less-cake-plugin": "dev-master",
-        "facebook/php-sdk-v4": "^5.0",
+	"facebook/graph-sdk": "*",
         "j7mbo/twitter-api-php": "dev-master",
 	"neitanod/forceutf8": "dev-master",
-	"phpclasses/youtube-downloader": ">=1.12"
+	"google/apiclient": "2.0",
+	"masih/youtubedownloader": "~2.9.0"
     },
     "require-dev": {
         "psy/psysh": "@stable",

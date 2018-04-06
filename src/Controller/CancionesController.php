@@ -3,10 +3,7 @@ namespace App\Controller;
 
 use Cake\Core\Exception\Exception;
 use Cake\ORM\TableRegistry;
-use Google_Client;
-use Google_Service_YouTube;
-require_once(ROOT . '/vendor/youtubeDownloader/youTubeVideoDownloader.php');
-require_once(ROOT . '/vendor/youtubeDownloader/youTubeBean.php');
+use Masih\YoutubeDownloader\YoutubeDownloader;
 require_once(ROOT . '/vendor/getid3/getid3.php');
 
 /**
@@ -94,8 +91,11 @@ class CancionesController extends AppController{
                     'sample_rate' => $sample_rate, 
                     'bitrate' => $bitrate,
                     '$dataformat' => $dataformat,
-                    'video_id' => '',
-                    'downloaded' => '',
+                    'video_id' => '',                    
+                    'quality' => '',
+                    'url_yt_download' => '',
+                    'filename' => '',                    
+                    'downloaded' => '',                    
                     'resultado' => ''
                     ];
                 
@@ -168,9 +168,9 @@ class CancionesController extends AppController{
                     
                     //Declare all variables and oject that will be used to make all API requests.
                     $dev_key = 'AIzaSyCbLwIWQDllwFAKvnK7_HTfJAwE1fux824';
-                    $youtube_client = new Google_Client();
+                    $youtube_client = new \Google_Client();
                     $youtube_client->setDeveloperKey($dev_key);
-                    $youtube_req = new Google_Service_YouTube($youtube_client);
+                    $youtube_req = new \Google_Service_YouTube($youtube_client);
                     $youtube_res = $youtube_req->search->listSearch('id, snippet', $criteria);
                     $video_res = $youtube_res['items'];
                     
@@ -179,7 +179,7 @@ class CancionesController extends AppController{
 
                         //Create the song object with all the data
                         $cancion_to_save = $this->Canciones->newEntity();
-                        $cancion_to_save->url = $this->url_web . "/watch?v=" . $video['id']['videoId'];
+                        $cancion_to_save->url_yt = $this->url_web . "/watch?v=" . $video['id']['videoId'];
                         $cancion_to_save->video_id = $video['id']['videoId'];
                         $cancion_to_save->title = $cancion['title'];
                         $cancion_to_save->artist = $cancion['artist'];
@@ -280,27 +280,32 @@ class CancionesController extends AppController{
             for ($i = 0; $i < count($resultadoDTO_recuperado['listado']); $i++) {                
                 $cancion = $resultadoDTO_recuperado['listado'][$i];
             
-                $bean = new \YouTubeBean();
-                $bean->setVideoId($cancion['video_id']);
-                $bean->setVideoFormat("5");
-                $bean->setMethod("curl");
-                $bean->setDestination($video_path);
+                $youtube = new YoutubeDownloader($cancion['video_id']);
+                $result = $youtube->getInfo();
 
-                $downloader = new \YouTubeVideoDownloader();
-                $downloader->startDownload($bean);
-                
-                //Update downloaded's flag in BD
-                $cancion_to_update = TableRegistry::get('Canciones')->find('all')
-                    ->where(['video_id' => $cancion['video_id']])->toArray();
-                
-                $cancion_to_update = reset($cancion_to_update);
-                $cancion_to_update->downloaded = 1;
-                
-                if ($this->Canciones->save($cancion_to_update)) {
-                    $resultadoDTO_recuperado['listado'][$i]['downloaded'] = 1;
+                if (count($result->full_formats) > 0) {                    
+                    $cancion_video = reset($result->full_formats);
+                    
+                    //Update downloaded's flag in BD
+                    $cancion_to_update = TableRegistry::get('Canciones')->find('all')
+                        ->where(['video_id' => $cancion['video_id']])->first();
+                    
+                    $cancion_to_update->quality = $cancion_video->quality;
+                    $cancion_to_update->url_yt_download = $cancion_video->url;
+                    $cancion_to_update->filename = $cancion_video->filename;
+                    
+                    if ($this->Canciones->save($cancion_to_update)) {
+                        $resultadoDTO_recuperado['listado'][$i]['quality'] = $cancion_video->quality;
+                        $resultadoDTO_recuperado['listado'][$i]['url_yt_download'] = $cancion_video->url;
+                        $resultadoDTO_recuperado['listado'][$i]['filename'] = $cancion_video->filename;
+                        $resultadoDTO_recuperado['listado'][$i]['resultado'] = 'El link de la canción ha sido guardado correctamente';
+                    }
+                    else {
+                        $resultadoDTO_recuperado['listado'][$i]['resultado'] = 'Hubo un error al actualizar la canción';
+                    }
                 }
                 else {
-                    $resultadoDTO_recuperado['listado'][$i]['downloaded'] = 0;
+                    $resultadoDTO_recuperado['listado'][$i]['resultado'] = 'La canción no posee video disponible';
                 }
             }
     	}
@@ -323,6 +328,26 @@ class CancionesController extends AppController{
 
     	try{
     	    
+            
+            
+                
+                /*
+                
+                //Update downloaded's flag in BD
+                $cancion_to_update = TableRegistry::get('Canciones')->find('all')
+                    ->where(['video_id' => $cancion['video_id']])->toArray();
+                
+                $cancion_to_update = reset($cancion_to_update);
+                $cancion_to_update->downloaded = 1;
+                
+                if ($this->Canciones->save($cancion_to_update)) {
+                    $resultadoDTO_recuperado['listado'][$i]['downloaded'] = 1;
+                }
+                else {
+                    $resultadoDTO_recuperado['listado'][$i]['downloaded'] = 0;
+                }
+            
+            */
     	    
         
     	    $resultadoDTO = ['error' => false, 'message' => "", 'listado' => $cancion_listado];
