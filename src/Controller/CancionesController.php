@@ -81,7 +81,8 @@ class CancionesController extends AppController{
                         break;
                 }                
 
-                $cancion_procesada = ['title' => $title, 
+                $cancion_procesada = ['url_yt' => '',
+                    'title' => $title, 
                     'artist' => $artist, 
                     'album' => $album, 
                     'year' => $year, 
@@ -90,7 +91,7 @@ class CancionesController extends AppController{
                     'filesize' => $filesize, 
                     'sample_rate' => $sample_rate, 
                     'bitrate' => $bitrate,
-                    '$dataformat' => $dataformat,
+                    'dataformat' => $dataformat,
                     'video_id' => '',                    
                     'quality' => '',
                     'url_yt_download' => '',
@@ -117,8 +118,8 @@ class CancionesController extends AppController{
      * @param array DTO con resultado del proceso, incluyendo un listado (array mapping) de canciones con nombre y artista.
      * @return array mapping Listado de canciones con nombre y artista filtrados.
      */
-    public function filtrarListadoCanciones($resultadoDTO){       
-        $listado = $resultadoDTO['listado'];
+    public function filtrarListadoCanciones($resultadoDTO_generado){       
+        $listado = $resultadoDTO_generado['listado'];
         $listado_filtrado = [];
 
         try {
@@ -136,13 +137,13 @@ class CancionesController extends AppController{
                 }
             }
 
-            $resultadoDTO = ['error' => false, 'message' => NULL, 'listado' => $listado_filtrado];
+            $resultadoDTO_generado = ['error' => false, 'message' => NULL, 'listado' => $listado_filtrado];
         }
         catch (Exception $ex) {
-            $resultadoDTO = ['error' => true, 'message' => $ex, 'listado' => []];
+            $resultadoDTO_generado = ['error' => true, 'message' => $ex, 'listado' => []];
         }
 
-        return $resultadoDTO;
+        return $resultadoDTO_generado;
     }
 
      /**
@@ -151,15 +152,15 @@ class CancionesController extends AppController{
      * @param array DTO con resultado del proceso, incluyendo un listado (array mapping) de canciones con nombre y artista filtrados.
      * @return array mapping Listado de canciones con nombre, artista y urls.
      */
-    public function recuperarLinksCanciones($resultadoDTO){  
+    public function recuperarLinksCanciones($resultadoDTO_filtrado){  
         $image_path = WWW_ROOT . "files/audios/covers";
 
         try {            
             $state = $this->getStateHeaderXml($this->url_web);
             
             if($state['ok']){            
-                for ($i = 0; $i < count($resultadoDTO['listado']); $i++) {                
-                    $cancion = $resultadoDTO['listado'][$i];
+                for ($i = 0; $i < count($resultadoDTO_filtrado['listado']); $i++) {                
+                    $cancion = $resultadoDTO_filtrado['listado'][$i];
 
                     $search = str_replace(" ", "+", $cancion['title']) . "+" . str_replace(" ", "+", $cancion['artist']);               
                     $criteria = [
@@ -190,7 +191,7 @@ class CancionesController extends AppController{
                         $cancion_to_save->filesize = $cancion['filesize'];
                         $cancion_to_save->sample_rate = $cancion['sample_rate'];
                         $cancion_to_save->bitrate = $cancion['bitrate'];
-                        $cancion_to_save->dataformat = ($cancion['$dataformat']);                    
+                        $cancion_to_save->dataformat = ($cancion['dataformat']);                    
                         $cancion_to_save->image_path = $video['snippet']['thumbnails']['high']['url'];                        
                         $cancion_to_save->fecha_publish = str_replace(["T", "Z"], " ", $video['snippet']['publishedAt']);
                         $cancion_to_save->creado = date("Y-m-d H:i:s");
@@ -202,29 +203,31 @@ class CancionesController extends AppController{
                         $this->guardarThumbnailADisco($video['snippet']['thumbnails']['high']['url'], $video['id']['videoId']);
 
                         //Save object into the DB
-                        if($this->Canciones->save($cancion_to_save)){
-                            $resultadoDTO['listado'][$i]['video_id'] = $video['id']['videoId'];
-                            $resultadoDTO['listado'][$i]['resultado'] = 'La canción se guardó correctamente';
+                        if($this->Canciones->save($cancion_to_save)){                            
+                            $resultadoDTO_filtrado['listado'][$i]['url_yt'] = $this->url_web . "/watch?v=" . $video['id']['videoId'];
+                            $resultadoDTO_filtrado['listado'][$i]['video_id'] = $video['id']['videoId'];
+                            $resultadoDTO_filtrado['listado'][$i]['resultado'] = 'La canción se guardó correctamente';
                         }
                         else {
-                            $resultadoDTO['listado'][$i]['video_id'] = $video['id']['videoId'];
-                            $resultadoDTO['listado'][$i]['resultado'] = 'Hubo un error al guardar la canción';
+                            $resultadoDTO_filtrado['listado'][$i]['url_yt'] = $this->url_web . "/watch?v=" . $video['id']['videoId'];
+                            $resultadoDTO_filtrado['listado'][$i]['video_id'] = $video['id']['videoId'];
+                            $resultadoDTO_filtrado['listado'][$i]['resultado'] = 'Hubo un error al guardar la canción';
                         }
                     }
                     else {
-                        $resultadoDTO['listado'][$i]['resultado'] = 'No hubieron resultados';
+                        $resultadoDTO_filtrado['listado'][$i]['resultado'] = 'No hubieron resultados';
                     }
                 }
             }
             else {
-                $resultadoDTO = ['error' => true, 'message' => "El sitio no está disponible", 'listado' => []];
+                $resultadoDTO_filtrado = ['error' => true, 'message' => "El sitio no está disponible", 'listado' => []];
             }
         }
         catch (Exception $ex) {
-            $resultadoDTO = ['error' => true, 'message' => $ex, 'listado' => []];
+            $resultadoDTO_filtrado = ['error' => true, 'message' => $ex, 'listado' => []];
         }
 
-        return $resultadoDTO;
+        return $resultadoDTO_filtrado;
     }
         
     /**
@@ -294,13 +297,32 @@ class CancionesController extends AppController{
                     $cancion_to_update->url_yt_download = $cancion_video->url;
                     $cancion_to_update->filename = $cancion_video->filename;
                     
+                    $quality = '';
+                    switch ($cancion_video->quality){
+                        case 'small': 
+                            $quality = '240p';
+                            break;
+                        case 'medium':
+                            $quality = '480p';
+                            break;
+                        case 'hd720':
+                            $quality = '720p';
+                            break;
+                        case 'hd1080':
+                            $quality = '1080p';
+                            break;                            
+                    }                    
+                    
                     if ($this->Canciones->save($cancion_to_update)) {
-                        $resultadoDTO_recuperado['listado'][$i]['quality'] = $cancion_video->quality;
+                        $resultadoDTO_recuperado['listado'][$i]['quality'] = $quality;
                         $resultadoDTO_recuperado['listado'][$i]['url_yt_download'] = $cancion_video->url;
                         $resultadoDTO_recuperado['listado'][$i]['filename'] = $cancion_video->filename;
                         $resultadoDTO_recuperado['listado'][$i]['resultado'] = 'El link de la canción ha sido guardado correctamente';
                     }
                     else {
+                        $resultadoDTO_recuperado['listado'][$i]['quality'] = $quality;
+                        $resultadoDTO_recuperado['listado'][$i]['url_yt_download'] = $cancion_video->url;
+                        $resultadoDTO_recuperado['listado'][$i]['filename'] = $cancion_video->filename;
                         $resultadoDTO_recuperado['listado'][$i]['resultado'] = 'Hubo un error al actualizar la canción';
                     }
                 }
@@ -364,38 +386,32 @@ class CancionesController extends AppController{
 
     	if($this->path != ""){    		
             $resultadoDTO_generado = $this->generarListadoCanciones($resultadoDTO);
-
+            $resultadoDTO_filtrado = $this->filtrarListadoCanciones($resultadoDTO_generado);
+            $resultadoDTO_recuperado = $this->recuperarLinksCanciones($resultadoDTO_filtrado);
+            $resultadoDTO_recargado = $this->descargarLinksCanciones($resultadoDTO_recuperado);
+            
+            /*
             echo "GENERAR";
             print "<pre>";
             print_r($resultadoDTO_generado);
-            print "</pre>";        
-
-            $resultadoDTO_filtrado = $this->filtrarListadoCanciones($resultadoDTO_generado);
-
+            print "</pre>";  
             echo "FILTRAR";
             print "<pre>";
             print_r($resultadoDTO_filtrado);
-            print "</pre>";            
-            
-            $resultadoDTO_recuperado = $this->recuperarLinksCanciones($resultadoDTO_filtrado);
-
+            print "</pre>";
             echo "RECUPERAR";
             print "<pre>";
             print_r($resultadoDTO_recuperado);
-            print "</pre>";
-            
-            $resultadoDTO_recargado = $this->descargarLinksCanciones($resultadoDTO_recuperado);
-            
+            print "</pre>";            
             echo "DESCARGAR";
             print "<pre>";
             print_r($resultadoDTO_recargado);
-            print "</pre>";
-            die;
-            /*
+            print "</pre>";           
+            
             $resultadoDTO_guardado = guardarLinksCanciones($resultadoDTO_recargado);*/
     	}
 
     	//seteamos las variables en la vista
-        //$this->set(compact('listado_filtrado_guardados'));
+        $this->set(compact('resultadoDTO_recargado'));
     }
 }

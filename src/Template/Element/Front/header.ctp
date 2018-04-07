@@ -22,7 +22,7 @@
                     </nav>
                 </div>
             </nav>
-
+            <!--
             <nav class="under-menu">
                 <ul class="load-responsive" rel="Menú">
                     <?php if(!empty($portales_menu)): ?>
@@ -56,7 +56,7 @@
                     <?php endforeach; ?>
                 </ul>
             </nav>
-
+            -->
         </div>
         <div class="clear-float"></div>
 
