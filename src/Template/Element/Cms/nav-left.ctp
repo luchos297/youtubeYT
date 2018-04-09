@@ -14,7 +14,22 @@
                 <li><?= $this->Html->link(__('Nuevo artículo'), ['controller'=>'articulos', 'action' => 'add']) ?>
                 </li>
             </ul>
-        </li>
+        </li>        
+        <li class="nav-dropdown">
+            <a href="#" title="Canciones">
+                <i class="fa fa-list-ul"></i> Canciones
+            </a>
+            <ul class="nav-sub">
+                <li><?= $this->Html->link(__('Escanear canciones'), ['controller' => 'canciones', 'action' => 'generarListadoCanciones']) ?>
+                </li>
+                <li><?= $this->Html->link(__('Filtrar canciones'), ['controller' => 'canciones', 'action' => 'filtrarListadoCanciones']) ?>
+                </li>
+                <li><?= $this->Html->link(__('Recuperar URLs'), ['controller' => 'canciones', 'action' => 'recuperarLinksCanciones']) ?>
+                </li>                
+                <li><?= $this->Html->link(__('Descargar videos'), ['controller' => 'canciones', 'action' => 'descargarLinksCanciones']) ?>
+                </li>
+            </ul>
+        </li>        
         <li class="nav-dropdown">
             <a href="#" title="Categorías">
                 <i class="fa fa-sort-amount-desc"></i> Categor&iacute;as

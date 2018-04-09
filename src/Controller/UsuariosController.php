@@ -10,8 +10,7 @@ use App\Controller\AppController;
  */
 class UsuariosController extends AppController
 {       
-    public function beforeFilter(\Cake\Event\Event $event)
-    {
+    public function beforeFilter(\Cake\Event\Event $event) {
         parent::beforeFilter($event);
         $this->Auth->allow(['login','logout']);
         //$this->checkAuth();
@@ -22,8 +21,7 @@ class UsuariosController extends AppController
      *
      * @return void
      */
-    public function index()
-    {
+    public function index() {
         $this->checkAuth();
         
         $id = isset($this->request->query['id'])? $this->request->query['id'] : null;
@@ -50,8 +48,7 @@ class UsuariosController extends AppController
      * @return void
      * @throws \Cake\Network\Exception\NotFoundException When record not found.
      */
-    public function view($id = null)
-    {
+    public function view($id = null) {
         $this->checkAuth();
         $usuario = $this->Usuarios->get($id, [
             'contain' => []
@@ -65,8 +62,7 @@ class UsuariosController extends AppController
      *
      * @return void Redirects on successful add, renders view otherwise.
      */
-    public function add()
-    {
+    public function add() {
         $this->checkAuth();
         $usuario = $this->Usuarios->newEntity();
         if ($this->request->is('post')) {
@@ -90,8 +86,7 @@ class UsuariosController extends AppController
      * @return void Redirects on successful edit, renders view otherwise.
      * @throws \Cake\Network\Exception\NotFoundException When record not found.
      */
-    public function edit($id = null)
-    {
+    public function edit($id = null) {
         $this->checkAuth();
         $usuario = $this->Usuarios->get($id, [
             'contain' => []
@@ -117,8 +112,7 @@ class UsuariosController extends AppController
      * @return void Redirects to index.
      * @throws \Cake\Network\Exception\NotFoundException When record not found.
      */
-    public function delete($id = null)
-    {
+    public function delete($id = null) {
         $this->checkAuth();
         $this->request->allowMethod(['post', 'delete']);
         $usuario = $this->Usuarios->get($id);
@@ -130,8 +124,7 @@ class UsuariosController extends AppController
         return $this->redirect(['action' => 'index']);
     }
     
-    public function login()
-    {        
+    public function login() {        
         $this->viewBuilder()->layout('Cms/pages-login');
         if ($this->request->is('post')) {
             $user = $this->Auth->identify();
@@ -143,13 +136,12 @@ class UsuariosController extends AppController
         }
     }
     
-    public function logout()
-    {
+    public function logout() {
         //$this->Flash->success('You are now logged out.');
         return $this->redirect($this->Auth->logout());
     }
     
-    public function cambiarPassword(){
+    public function cambiarPassword() {
         $this->checkAuth();
         $usuario =$this->Usuarios->get($this->Auth->user('id'));
         if ($this->request->is(['patch', 'post', 'put'])) {

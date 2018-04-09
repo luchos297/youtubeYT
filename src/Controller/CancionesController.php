@@ -381,28 +381,16 @@ class CancionesController extends AppController{
         return $resultadoDTO;
     }
 
-    public function index(){
+    public function scan(){
     	$resultadoDTO = ["", "", []];
 
     	if($this->path != ""){    		
             $resultadoDTO_generado = $this->generarListadoCanciones($resultadoDTO);
-            $resultadoDTO_filtrado = $this->filtrarListadoCanciones($resultadoDTO_generado);
+            /*$resultadoDTO_filtrado = $this->filtrarListadoCanciones($resultadoDTO_generado);
             $resultadoDTO_recuperado = $this->recuperarLinksCanciones($resultadoDTO_filtrado);
-            $resultadoDTO_recargado = $this->descargarLinksCanciones($resultadoDTO_recuperado);
+            $resultadoDTO_recargado = $this->descargarLinksCanciones($resultadoDTO_recuperado);*/
             
-            /*
-            echo "GENERAR";
-            print "<pre>";
-            print_r($resultadoDTO_generado);
-            print "</pre>";  
-            echo "FILTRAR";
-            print "<pre>";
-            print_r($resultadoDTO_filtrado);
-            print "</pre>";
-            echo "RECUPERAR";
-            print "<pre>";
-            print_r($resultadoDTO_recuperado);
-            print "</pre>";            
+            /*           
             echo "DESCARGAR";
             print "<pre>";
             print_r($resultadoDTO_recargado);
