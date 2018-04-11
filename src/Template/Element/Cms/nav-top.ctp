@@ -7,12 +7,12 @@
         </li>
         <li class="dropdown settings">
             <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-            <?= $userlogged['email']  ?> <i class="fa fa-angle-down"></i>
+            <?= $userlogged['email'] ?> <i class="fa fa-angle-down"></i>
         </a>
             <ul class="dropdown-menu animated fadeInDown">
                 <li>
-                    <a href="<?= $this->Url->build(['controller' =>'Usuarios','action' =>'cambiar_password']); ?>"><i class="fa fa-key"></i> Cambiar contraseña </a>
-                    <a href="<?= $this->Url->build(['controller' =>'Usuarios','action' =>'logout']); ?>"><i class="fa fa-power-off"></i> Salir </a>
+                    <a href="<?= $this->Url->build(['controller' => 'Usuarios', 'action' => 'cambiar_password']); ?>"><i class="fa fa-key"></i> Cambiar contraseña </a>
+                    <a href="<?= $this->Url->build(['controller' => 'Usuarios', 'action' => 'logout']); ?>"><i class="fa fa-power-off"></i> Salir </a>
                 </li>
             </ul>
         </li>

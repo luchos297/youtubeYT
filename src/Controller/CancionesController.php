@@ -22,10 +22,251 @@ class CancionesController extends AppController{
     }
 
     public function beforeFilter(\Cake\Event\Event $event){
+        parent::beforeFilter($event);
         $this->Auth->allow(['index']);
+        $this->viewBuilder()->layout('Cms/default');
+    }
+    
+    /**
+     * Recupera todas las canciones almacenadas en la BD
+	 * 
+     * @colums: id, url, video_id, duration, artist, album, year, fecha_scanned, fecha_publish, image_path, downloaded
+     * @param null
+     * @return array mapping Listado de canciones almacenadas.
+     */
+    public function index(){
+        $this->checkAuth();
+        $id = isset($this->request->query['id']) ? $this->request->query['id'] : null;        
+        $title = isset($this->request->query['title']) ? $this->request->query['title'] : null;
+        $artist = isset($this->request->query['artist']) ? $this->request->query['artist'] : null;
+        $url = isset($this->request->query['url']) ? $this->request->query['url'] : null;
+        $duration = isset($this->request->query['duration']) ? $this->request->query['duration'] : null;
+        $year = isset($this->request->query['year']) ? $this->request->query['year'] : null;        
+        $filesize = isset($this->request->query['filesize']) ? $this->request->query['filesize'] : null;
+        $dataformat = isset($this->request->query['dataformat']) ? $this->request->query['dataformat'] : null;
+        $downloaded = isset($this->request->query['downloaded']) ? $this->request->query['downloaded'] : null;
+        $creado = isset($this->request->query['creado']) ? $this->request->query['creado'] : null;
+        
+        $query = $this->Canciones->find('all')
+                ->select([
+                    'Canciones.id',
+                    'Canciones.title',
+                    'Canciones.artist',
+                    'Canciones.url',
+                    'Canciones.duration',
+                    'Canciones.year',                    
+                    'Canciones.filesize',
+                    'Canciones.dataformat',
+                    'Canciones.downloaded',                    
+                    'Canciones.creado']);
+        
+        if($id != null && !empty($id)){
+            $query = $query->where(['Canciones.id' => $id]);
+        }
+        if($title != null && !empty($title)){
+            $query = $query->where(['Canciones.title' => $title]);
+        }
+        if($artist != null && !empty($artist)){
+            $query = $query->where(['Canciones.artist' => $artist]);
+        }
+        if($url != null && !empty($url)){
+            $query = $query->where(['Canciones.url' => $url]);
+        }
+        if($duration != null && !empty($duration)){
+            $query = $query->where(['Canciones.duration' => $duration]);
+        }
+        if($year != null && !empty($year)){
+            $query = $query->where(['Canciones.year' => $year]);
+        }
+        if($filesize != null && !empty($filesize)){
+            $query = $query->where(['Canciones.filesize' => $filesize]);
+        }
+        if($dataformat != null && !empty($dataformat)){
+            $query = $query->where(['Canciones.dataformat' => $dataformat]);
+        }
+        if($downloaded != null && !empty($downloaded)){
+            $query = $query->where(['Canciones.downloaded' => $downloaded]);
+        }
+        if($creado != null && !empty($creado) && strtotime($creado) != false){
+            $query = $query->where(['Canciones.creado LIKE' => '%' . date('Y-m-d', strtotime($creado)) . '%']);
+        }
+
+        $this->paginate = [
+            'order' => ['Canciones.creado' => 'desc'], 'limit' => 20
+        ];        
+
+        $this->set('canciones', $this->paginate($query));
+        $this->set('_serialize', ['canciones']);
+    }
+    
+    /**
+     * Ver una cancion
+     *
+     * @param string $id Cancion id.
+     * @return void
+     * @throws \Cake\Network\Exception\NotFoundException When record not found.
+     */
+    public function view($id) {
+        $this->checkAuth();
+        $cancion = $this->Canciones->get($id);
+
+        $cancion->filesize = $cancion->filesize. ' MB';
+        $cancion->bitrate =  $cancion->bitrate. ' Kbps';
+        $cancion->dataformat =  strtoupper($cancion->dataformat);
+        $cancion->quality = $this->getFormattedQuality($cancion->quality);
+        $cancion->modificado = isset($cancion->modificado) ? $this->Time->format($cancion->modificado, 'dd/MM/Y HH:mm:ss', null, null) : 'Sin modificación';
+        
+        $this->set('cancion', $cancion);
+        $this->set('_serialize', ['cancion']);
+    }
+    
+    /**
+     * Edita una cancion
+     *
+     * @param string $id Cancion id.
+     * @return void Redirects on successful edit, renders view otherwise.
+     * @throws \Cake\Network\Exception\NotFoundException When record not found.
+     */
+    public function edit($id)
+    {
+        $this->checkAuth();
+        $articulo = $this->Articulos->get($id, [
+            'contain' => ['Imagenes','PalabrasClaves']
+        ]);
+        if ($this->request->is(['patch', 'post', 'put'])) {
+            $articulo = $this->Articulos->patchEntity($articulo, $this->request->data);
+            $articulo->modificado = date("Y-m-d H:i:s");
+            if ($this->Articulos->save($articulo)) {
+                $array_imagenes = [];
+                if(!empty($this->request->data['filename'])){
+                    foreach($this->request->data['filename'] as $imagen_a_guardar){
+                        $imagen = TableRegistry::get('Imagenes')->newEntity();
+                        $imagen = TableRegistry::get('Imagenes')->patchEntity($imagen, $this->request->data);
+                        $filename = [
+                            'error' => $imagen_a_guardar['error'],
+                            'name' => $imagen_a_guardar['name'],
+                            'size' => $imagen_a_guardar['size'],
+                            'tmp_name' => $imagen_a_guardar['tmp_name'],
+                            'type' => $imagen_a_guardar['type']
+                        ];
+                        $imagen->filename = $filename;
+                        $imagen->creado = date("Y-m-d H:i:s");
+                        array_push($array_imagenes, $imagen);
+                    }
+                }
+                $this->Articulos->afterDelete(new Event('Model.Articulos'),$articulo, new \ArrayObject());
+                $articulo->imagenes = $array_imagenes;
+                $this->Articulos->save($articulo);
+
+                $array_palabras_claves = [];
+                if(!empty($this->request->data['palabras_claves_'])){
+                    $tags = explode(',',$this->request->data['palabras_claves_']);
+                    foreach($tags as $tag){
+                        $palabra_clave_existente = TableRegistry::get('PalabrasClaves')->findByTexto($tag)->first();
+                        if($palabra_clave_existente){
+                            $palabra_clave = $palabra_clave_existente;
+                        }
+                        else{
+                            $palabra_clave = TableRegistry::get('PalabrasClaves')->newEntity();
+                            $palabra_clave->texto = $tag;
+                            $palabra_clave->creado = date("Y-m-d H:i:s");
+                        }
+
+                        array_push($array_palabras_claves,$palabra_clave);
+                    }
+                }
+                $articulo = $this->Articulos->get($articulo->id);
+                $articulo->palabras_claves = $array_palabras_claves;
+                $this->Articulos->save($articulo);
+
+                $this->Flash->success(__('El artículo ha sido guardado.'));
+                return $this->redirect(['action' => 'index']);
+            } else {
+                $this->Flash->error(__('El artículo no pudo ser guardado. Intente nuevamente.'));
+            }
+        }
+        $categorias = $this->Articulos->Categorias->find('list', ['limit' => 200]);
+        $portales = $this->Articulos->Portales->find('list', ['limit' => 200]);
+        $imagenes = $this->Articulos->Imagenes->find('list', ['limit' => 200]);
+        $this->set(compact('articulo', 'categorias', 'portales', 'imagenes'));
+        $this->set('_serialize', ['articulo']);
+    }
+    
+    /**
+     * Borra una cancion
+     *
+     * @param string $id Cancion id.
+     * @return void Redirects to index.
+     * @throws \Cake\Network\Exception\NotFoundException When record not found.
+     */
+    public function delete($id) {
+        $this->checkAuth();
+        $this->request->allowMethod(['post', 'delete']);
+        $cancion = $this->Canciones->get($id);
+
+        //borramos las fotos fisicas y el directorio del disco
+        unlink('/var/www/webroot/files/audios/covers/' . $cancion->video_id . '.jpg');
+        rmdir('/var/www/webroot/files/audios/covers/' . $cancion->video_id . '.jpg');
+
+        if ($this->Canciones->delete($cancion)) {
+            $this->Flash->success(__('La canción ha sido borrado.'));
+        }
+        else {
+            $this->Flash->error(__('La canción no pudo ser borrada. Intente nuevamente.'));
+        }
+
+        return $this->redirect(['action' => 'index']);
+    }
+    
+    /**
+     * Reemplaza string por string formateado
+     *
+     * @param string $quality.
+     * @return string $quality formatted.
+     */
+    public function getFormattedQuality($quality) {
+            
+        switch ($quality){
+            case 'small':
+                $quality = '240p';
+                break;
+            case 'medium':
+                $quality = '480p';
+                break;
+            case 'hd720':
+                $quality = '720p';
+                break;
+            case 'hd1080':
+                $quality = '1080p';
+                break;
+        }
+        
+        return $quality;
     }
 
-	/**
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /**
      * Generar la lista de temas en base a un directorio en particular (obteniendo con tag ID3v3 el artista)	
      *
      * @param string Path de la lista de las canciones.
@@ -180,7 +421,7 @@ class CancionesController extends AppController{
 
                         //Create the song object with all the data
                         $cancion_to_save = $this->Canciones->newEntity();
-                        $cancion_to_save->url_yt = $this->url_web . "/watch?v=" . $video['id']['videoId'];
+                        $cancion_to_save->url = $this->url_web . "/watch?v=" . $video['id']['videoId'];
                         $cancion_to_save->video_id = $video['id']['videoId'];
                         $cancion_to_save->title = $cancion['title'];
                         $cancion_to_save->artist = $cancion['artist'];
@@ -204,12 +445,12 @@ class CancionesController extends AppController{
 
                         //Save object into the DB
                         if($this->Canciones->save($cancion_to_save)){                            
-                            $resultadoDTO_filtrado['listado'][$i]['url_yt'] = $this->url_web . "/watch?v=" . $video['id']['videoId'];
+                            $resultadoDTO_filtrado['listado'][$i]['url'] = $this->url_web . "/watch?v=" . $video['id']['videoId'];
                             $resultadoDTO_filtrado['listado'][$i]['video_id'] = $video['id']['videoId'];
                             $resultadoDTO_filtrado['listado'][$i]['resultado'] = 'La canción se guardó correctamente';
                         }
                         else {
-                            $resultadoDTO_filtrado['listado'][$i]['url_yt'] = $this->url_web . "/watch?v=" . $video['id']['videoId'];
+                            $resultadoDTO_filtrado['listado'][$i]['url'] = $this->url_web . "/watch?v=" . $video['id']['videoId'];
                             $resultadoDTO_filtrado['listado'][$i]['video_id'] = $video['id']['videoId'];
                             $resultadoDTO_filtrado['listado'][$i]['resultado'] = 'Hubo un error al guardar la canción';
                         }
@@ -297,22 +538,8 @@ class CancionesController extends AppController{
                     $cancion_to_update->url_yt_download = $cancion_video->url;
                     $cancion_to_update->filename = $cancion_video->filename;
                     
-                    $quality = '';
-                    switch ($cancion_video->quality){
-                        case 'small': 
-                            $quality = '240p';
-                            break;
-                        case 'medium':
-                            $quality = '480p';
-                            break;
-                        case 'hd720':
-                            $quality = '720p';
-                            break;
-                        case 'hd1080':
-                            $quality = '1080p';
-                            break;                            
-                    }                    
-                    
+                    $quality = $this->getFormattedQuality($cancion_video->quality);
+
                     if ($this->Canciones->save($cancion_to_update)) {
                         $resultadoDTO_recuperado['listado'][$i]['quality'] = $quality;
                         $resultadoDTO_recuperado['listado'][$i]['url_yt_download'] = $cancion_video->url;
@@ -381,7 +608,7 @@ class CancionesController extends AppController{
         return $resultadoDTO;
     }
 
-    public function scan(){
+    public function scann(){
     	$resultadoDTO = ["", "", []];
 
     	if($this->path != ""){    		
@@ -402,4 +629,6 @@ class CancionesController extends AppController{
     	//seteamos las variables en la vista
         $this->set(compact('resultadoDTO_recargado'));
     }
+    
+    
 }

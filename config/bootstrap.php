@@ -250,6 +250,7 @@ Configure::write('path_imagen_banner', '../img/images/banners/filename/');
 Configure::write('path_imagen_banners', 'img/images/banners/filename/');
 Configure::write('path_imagen_banner_mobile', '../img/images/banners/filename_mobile/');
 Configure::write('path_imagen_portadas', 'img/images/portadas/');
+Configure::write('path_imagen_covers', '../files/audios/covers/');
 Configure::write('usuario_twitter','vista_medios');
 Configure::write('limite_tolerancia', 80);
 Configure::write('urls', ['http://www.infobae.com/politica/2016/08/16/cristina-elisabet-kirchner-defendio-el-enriquecimiento-de-lazaro-baez/']);

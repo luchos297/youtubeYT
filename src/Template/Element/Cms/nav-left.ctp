@@ -1,9 +1,6 @@
 <nav class="sidebar sidebar-left">
     <!--<h5 class="sidebar-header">Navigation</h5>-->
     <ul class="nav nav-pills nav-stacked">
-        <!--li>
-            <?php //$this->Html->link('<i class="fa fa-home"></i> Inicio', ['controller'=>'administrador', 'action' => 'index'],['escape'=>false]) ?>
-        </li-->
         <li class="nav-dropdown">
             <a href="#" title="Artículos">
                 <i class="fa fa-list-ul"></i> Art&iacute;culos
@@ -20,6 +17,8 @@
                 <i class="fa fa-list-ul"></i> Canciones
             </a>
             <ul class="nav-sub">
+                <li><?= $this->Html->link(__('Ver canciones'), ['controller' => 'canciones', 'action' => 'index']) ?>
+                </li>                
                 <li><?= $this->Html->link(__('Escanear canciones'), ['controller' => 'canciones', 'action' => 'generarListadoCanciones']) ?>
                 </li>
                 <li><?= $this->Html->link(__('Filtrar canciones'), ['controller' => 'canciones', 'action' => 'filtrarListadoCanciones']) ?>
