@@ -22,10 +22,8 @@
                 </div>
             </div>-->
             <div class="panel-body">
-                <?= $this->Form->create($articulo,['type' => 'file', 'class' => '', 'id'=>'bootstrapTagsInputForm', 'onkeypress'=>'return event.keyCode != 13;']) ?>
-                    <!--<legend><?= __('Add Articulo') ?></legend>-->
-                    <?php
-                        $myTemplates = [
+                <?= $this->Form->create($cancion, ['type' => 'file', 'class' => '', 'id' => 'bootstrapTagsInputForm', 'onkeypress' => 'return event.keyCode != 13;']) ?>
+                    <?php $myTemplates = [
                             'inputContainer' => '<div class="form-group">{{content}}</div>',
                             'dateWidget' => '
                                 <div class="form-group row"><div class="col-sm-8"><div class="col-sm-2">{{day}}</div>
@@ -37,71 +35,56 @@
                         $this->Form->templates($myTemplates);
                         $class_input = 'form-control';
                         $class_label = '';
-                        echo $this->Form->input('categoria_id', ['label' => 'Categoría', ['class' => $class_label], 'options' => $categorias, 'class'=> $class_input]);
-                        echo $this->Form->input('portal_id', ['options' => $portales, 'class'=> $class_input,'label' => ['class' => $class_label]]);
-                        echo $this->Form->input('url',['label' => ['class' => $class_label], 'class'=> $class_input]);
-                        echo $this->Form->input('url_rss',['label' => ['class' => $class_label], 'class'=> $class_input]);
-                        echo $this->Form->input('titulo',['label' => 'Título', ['class' => $class_label], 'class'=> $class_input]);
-                        echo $this->Form->input('descripcion',['label' => 'Descripción', ['class' => $class_label], 'class'=> $class_input]);
-                        echo $this->Form->input('texto',['label' => ['class' => $class_label], 'class'=> $class_input.' html-editor']);
-                        $palabras = [];
-                        foreach($articulo->palabras_claves as $palabra_clave){
-                            $palabras[] = $palabra_clave->texto;
-                        }
-                        echo $this->Form->input('palabras_claves_',[
-                            'label' => 'Palabras claves', 
-                            'name' => 'palabras_claves_',
-                            'class' => $class_input,
-                            'data-role' => 'tagsinput',
-                            'value' => implode(',',$palabras)]);
-                        
-                        echo $this->Form->input('visitas',['label' => ['class' => $class_label], 'class'=> $class_input]);
-                        echo $this->Form->input('filename[]', ['type' => 'file', 'label'=>'Imagen/es', 'multiple', 'accept'=>'.gif, .jpg, .jpeg, .png']);
-                        
-                        ?>
-                        <div id ="imagen-articulo">
-                        <?php
-                        if($articulo->has('imagenes')){
-                            foreach($articulo->imagenes as $imagen){
-                                echo $this->Html->image(Cake\Core\Configure::read('path_imagen_rss') . $imagen->file_url.'/'.$imagen->filename, ['class'=> 'form-group']);
-                            }
-                        }
-                        ?>
-                        </div>
-                        <?php
-                        
-                        echo $this->Form->input('publicado', [
-                            'type' => 'datetime', 
-                            'interval' => 2, 
-                            'class'=> $class_input,
-                            'monthNames' => false,
-                            'day' => [
-                                'class' => $class_input,
-                            ],
-                            'year' => [
-                                'class' => $class_input,
-                            ],
-                            'month' => [
-                                'class' => $class_input,
-                            ],
-                            'hour' => [
-                                'class' => $class_input,
-                            ],
-                            'minute' => [
-                                'class' => $class_input,
-                            ]
+                        echo $this->Form->input('url', ['label' => 'Youtube', ['class' => $class_label], 'class'=> $class_input]);
+                        echo $this->Form->input('title', ['label' => 'Title', ['class' => $class_label], 'class'=> $class_input]);
+                        echo $this->Form->input('artist', ['label' => 'Artist', ['class' => $class_label], 'class'=> $class_input]);
+                        echo $this->Form->input('album', ['label' => 'Album', ['class' => $class_label], 'class'=> $class_input]);
+                        echo $this->Form->input('genre', ['label' => 'Genre', ['class' => $class_label], 'class'=> $class_input]);
+                        echo $this->Form->input('filesize', ['label' => 'Filesize', ['class' => $class_label], 'class'=> $class_input]);
+                        echo $this->Form->input('duration', ['label' => 'Duration', ['class' => $class_label], 'class'=> $class_input]);
+                        echo $this->Form->input('sample_rate', ['label' => 'Sample Rate', ['class' => $class_label], 'class'=> $class_input]);
+                        echo $this->Form->input('bitrate', ['label' => 'Bitrate', ['class' => $class_label], 'class'=> $class_input]);
+                        echo $this->Form->input('dataformat', ['label' => 'Format', ['class' => $class_label], 'class'=> $class_input]);
+                        echo $this->Form->input('quality', ['label' => 'Quality', ['class' => $class_label], 'class'=> $class_input]);
+                        echo $this->Form->input('url_yt_download', ['label' => 'Download URL', ['class' => $class_label], 'class'=> $class_input]);                        
+                        echo $this->Form->input('filename', ['label' => 'Filename', ['class' => $class_label], 'class'=> $class_input]);
+                        echo $this->Form->input('downloaded', ['label' => 'Downloaded', ['class' => $class_label], 'class'=> 'icheck']);                        
+                        echo $this->Form->input('fecha_publish', ['type' => 'datetime', 'interval' => 2, 'class'=> $class_input, 'monthNames' => false, 
+                            'day' => ['class' => $class_input,], 
+                            'year' => [ 'class' => $class_input,],
+                            'month' => ['class' => $class_input,],
+                            'hour' => ['class' => $class_input,],
+                            'minute' => ['class' => $class_input,]
                         ]);
-                        echo $this->Form->input('habilitado', ['label' => ['class' => $class_label], 'class'=> 'icheck']);
-                        //echo $this->Form->input('creado');
-                        //echo $this->Form->input('modificado');
-                        //echo $this->Form->input('tiene_imagen');
-                        //echo $this->Form->input('tiene_video');
-                        //echo $this->Form->input('localizacion');
+                        echo $this->Form->input('creado', ['type' => 'datetime', 'interval' => 2, 'class'=> $class_input, 'monthNames' => false, 
+                            'day' => ['class' => $class_input,], 
+                            'year' => [ 'class' => $class_input,],
+                            'month' => ['class' => $class_input,],
+                            'hour' => ['class' => $class_input,],
+                            'minute' => ['class' => $class_input,]
+                        ]);
+                        echo $this->Form->input('modificado', ['type' => 'datetime', 'interval' => 2, 'class'=> $class_input, 'monthNames' => false, 
+                            'day' => ['class' => $class_input,], 
+                            'year' => [ 'class' => $class_input,],
+                            'month' => ['class' => $class_input,],
+                            'hour' => ['class' => $class_input,],
+                            'minute' => ['class' => $class_input,]
+                        ]);
                     ?>
+                    
+                    <div class="form-group"><label>Cover</label>
+                        <div class="form-group row">
+                            <div class="col-sm-8">
+                                <?php if($cancion->image_path){
+                                    echo $this->Html->image(Cake\Core\Configure::read('path_imagen_covers') . $cancion->video_id . '.jpg');
+                                } ?>
+                            </div>
+                        </div>
+                    </div>                           
                 <output id="list"></output>
                 <div class="form-group">
                     <?= $this->Form->button(__('Guardar'),['class' => 'btn btn-primary']) ?>
-                    <?= $this->Form->button(__('Volver'),['class' => 'btn btn-default volver', 'type'=>'button']) ?>
+                    <?= $this->Form->button(__('Volver'),['class' => 'btn btn-default volver', 'type' => 'button']) ?>
                 </div>
                 <?= $this->Form->end() ?>
             </div>
@@ -122,7 +105,7 @@
     });
     
     function archivo(evt) {
-        $('#imagen-articulo').empty();
+        $('#imagen-cancion').empty();
         var files = evt.target.files; // FileList object
 
         // Obtenemos la imagen del campo "file".
@@ -137,7 +120,7 @@
             reader.onload = (function(theFile) {
                 return function(e) {
                     // Insertamos la/s imagen/es
-                    $("#imagen-articulo").append('<img src="'+e.target.result+'" class="form-group"/>');
+                    $("#imagen-cancion").append('<img src="'+e.target.result+'" class="form-group"/>');
                     
                 };
           })(f);

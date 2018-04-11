@@ -127,69 +127,25 @@ class CancionesController extends AppController{
      * @return void Redirects on successful edit, renders view otherwise.
      * @throws \Cake\Network\Exception\NotFoundException When record not found.
      */
-    public function edit($id)
-    {
-        $this->checkAuth();
-        $articulo = $this->Articulos->get($id, [
-            'contain' => ['Imagenes','PalabrasClaves']
-        ]);
+    public function edit($id) {
+        $this->checkAuth();        
+        $cancion = $this->Canciones->get($id);
+        
         if ($this->request->is(['patch', 'post', 'put'])) {
-            $articulo = $this->Articulos->patchEntity($articulo, $this->request->data);
-            $articulo->modificado = date("Y-m-d H:i:s");
-            if ($this->Articulos->save($articulo)) {
-                $array_imagenes = [];
-                if(!empty($this->request->data['filename'])){
-                    foreach($this->request->data['filename'] as $imagen_a_guardar){
-                        $imagen = TableRegistry::get('Imagenes')->newEntity();
-                        $imagen = TableRegistry::get('Imagenes')->patchEntity($imagen, $this->request->data);
-                        $filename = [
-                            'error' => $imagen_a_guardar['error'],
-                            'name' => $imagen_a_guardar['name'],
-                            'size' => $imagen_a_guardar['size'],
-                            'tmp_name' => $imagen_a_guardar['tmp_name'],
-                            'type' => $imagen_a_guardar['type']
-                        ];
-                        $imagen->filename = $filename;
-                        $imagen->creado = date("Y-m-d H:i:s");
-                        array_push($array_imagenes, $imagen);
-                    }
-                }
-                $this->Articulos->afterDelete(new Event('Model.Articulos'),$articulo, new \ArrayObject());
-                $articulo->imagenes = $array_imagenes;
-                $this->Articulos->save($articulo);
-
-                $array_palabras_claves = [];
-                if(!empty($this->request->data['palabras_claves_'])){
-                    $tags = explode(',',$this->request->data['palabras_claves_']);
-                    foreach($tags as $tag){
-                        $palabra_clave_existente = TableRegistry::get('PalabrasClaves')->findByTexto($tag)->first();
-                        if($palabra_clave_existente){
-                            $palabra_clave = $palabra_clave_existente;
-                        }
-                        else{
-                            $palabra_clave = TableRegistry::get('PalabrasClaves')->newEntity();
-                            $palabra_clave->texto = $tag;
-                            $palabra_clave->creado = date("Y-m-d H:i:s");
-                        }
-
-                        array_push($array_palabras_claves,$palabra_clave);
-                    }
-                }
-                $articulo = $this->Articulos->get($articulo->id);
-                $articulo->palabras_claves = $array_palabras_claves;
-                $this->Articulos->save($articulo);
-
-                $this->Flash->success(__('El artículo ha sido guardado.'));
+            $cancion = $this->Canciones->patchEntity($cancion, $this->request->data);
+            $cancion->modificado = date("Y-m-d H:i:s");
+            if ($this->Canciones->save($cancion)) {
+                $this->Flash->success(__('La canción ha sido guardado.'));
+                
                 return $this->redirect(['action' => 'index']);
-            } else {
-                $this->Flash->error(__('El artículo no pudo ser guardado. Intente nuevamente.'));
+            }
+            else {
+                $this->Flash->error(__('La canción no pudo ser guardada. Intente nuevamente.'));
             }
         }
-        $categorias = $this->Articulos->Categorias->find('list', ['limit' => 200]);
-        $portales = $this->Articulos->Portales->find('list', ['limit' => 200]);
-        $imagenes = $this->Articulos->Imagenes->find('list', ['limit' => 200]);
-        $this->set(compact('articulo', 'categorias', 'portales', 'imagenes'));
-        $this->set('_serialize', ['articulo']);
+
+        $this->set(compact('cancion'));
+        $this->set('_serialize', ['cancion']);
     }
     
     /**

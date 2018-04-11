@@ -24,7 +24,7 @@
                         </tr>
                         <tr>
                             <td>
-                                <h4 style="font-weight: bold;"><?= __('URL') ?></h4>
+                                <h4 style="font-weight: bold;"><?= __('Youtube') ?></h4>
                             </td>
                             <td class="" style="align: center; vertical-align: middle;"><a href="<?= $cancion->url ?>" target="_blank"><?= $cancion->url ?></a></td>
                         </tr>
