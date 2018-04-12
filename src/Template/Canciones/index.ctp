@@ -12,7 +12,7 @@
     <div class="col-md-12">
         <div class="panel panel-default">
             <div class="button-massive-delete">
-                <p><button class="btn btn-warning btn-block">Eliminaci&oacute;n masiva</button></p>                
+                <p><button class="btn btn-warning btn-block">Eliminaci&oacute;n masiva</button></p>
             </div>
             <div class="panel-body">
                 <?= $this->element('Cms/paginator-top') ?>
@@ -91,9 +91,6 @@
                 return false;
             }
         });
-        $('.apply-filters').click(function (e) {
-            $('.tablesorter-filter-row form').submit();
-        });
 
         $(".clear-filters").click(function() {
             $('input.search').val('');
@@ -104,12 +101,14 @@
         $('.button-massive-delete').click(function() {
 
             var idNoticias = '';
+
             $("input:checkbox:checked").each(function(){
                 //cada elemento seleccionado
                 if(idNoticias != '')
                     idNoticias += '-';
                 idNoticias += $(this).attr('id');
             });
+
             //console.debug(idNoticias);
             if(idNoticias != ''){
                 confirmar = confirm("Est\u00e1 por eliminar los articulos seleccionados.\n \u00BFDesea continuar?");

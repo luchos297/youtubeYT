@@ -18,8 +18,8 @@
             </a>
             <ul class="nav-sub">
                 <li><?= $this->Html->link(__('Ver canciones'), ['controller' => 'canciones', 'action' => 'index']) ?>
-                </li>                
-                <li><?= $this->Html->link(__('Escanear canciones'), ['controller' => 'canciones', 'action' => 'generarListadoCanciones']) ?>
+                </li>   
+                <li><?= $this->Html->link(__('Escanear canciones'), ['controller' => 'canciones', 'action' => 'scan']) ?>
                 </li>
                 <li><?= $this->Html->link(__('Filtrar canciones'), ['controller' => 'canciones', 'action' => 'filtrarListadoCanciones']) ?>
                 </li>

@@ -8,7 +8,6 @@
         <h1 class="h1">Escanear canciones</h1>
     </div>
 </div>
-
 <div class="row">
     <div class="col-md-12">
         <div class="panel panel-default">
@@ -20,77 +19,46 @@
                 </div>
             </div>-->
             <div class="panel-body">
-                <?= $this->Form->create($articulo,['type' => 'file', 'class' => '', 'id'=>'bootstrapTagsInputForm', 'onkeypress'=>'return event.keyCode != 13;']) ?>
-                    <!--<legend><?= __('Scan Canciones') ?></legend>-->
-                    <?php
-                        $myTemplates = [
-                            'inputContainer' => '<div class="form-group">{{content}}</div>',
-                            'dateWidget' => '
-                                <div class="form-group row"><div class="col-sm-8"><div class="col-sm-2">{{day}}</div>
-                                <div class="col-sm-2">{{month}}</div>
-                                <div class="col-sm-2">{{year}}</div>
-                                <div class="col-sm-2">{{hour}}</div>
-                                <div class="col-sm-2">{{minute}}</div></div></div>'
-                            ];
-                        $this->Form->templates($myTemplates);
-                        $class_input = 'form-control';
-                        $class_label = '';
-                        echo $this->Form->input('categoria_id', ['label' => 'Categoría', ['class' => $class_label], 'options' => $categorias, 'class'=> $class_input]);
-                        echo $this->Form->input('portal_id', ['options' => $portales, 'class'=> $class_input,'label' => ['class' => $class_label]]);
-                        echo $this->Form->input('url',['label' => ['class' => $class_label], 'class'=> $class_input]);
-                        echo $this->Form->input('url_rss',['label' => ['class' => $class_label], 'class'=> $class_input]);
-                         echo $this->Form->input('titulo',['label' => 'Título', ['class' => $class_label], 'class'=> $class_input]);
-                        echo $this->Form->input('descripcion',['label' => 'Descripción', ['class' => $class_label], 'class'=> $class_input]);
-                        echo $this->Form->input('texto',['label' => ['class' => $class_label], 'class'=> $class_input.' html-editor']);
-                        echo $this->Form->input('palabras_claves',[
-                            'label' => 'Palabras claves', 
-                            'name' => 'palabras_claves',
-                            'class' => $class_input,
-                            'data-role' => 'tagsinput',
-                            'value' => '']);
-                        echo $this->Form->input('visitas',['label' => ['class' => $class_label], 'class'=> $class_input]);
-                        echo $this->Form->input('filename[]', ['type' => 'file', 'label'=>'Imagen/es', 'multiple', 'accept'=>'.gif, .jpg, .jpeg, .png']);
-                        
-                        ?>
-                        <div id ="imagen-articulo">                        
-                        </div>
-                        <?php
-                        
-                        echo '<div id ="imagen-articulo"></div>';
-                        
-                        echo $this->Form->input('publicado', [
-                            'type' => 'datetime', 
-                            'interval' => 2, 
-                            'class'=> $class_input,
-                            'monthNames' => false,
-                            'day' => [
-                                'class' => $class_input,
-                            ],
-                            'year' => [
-                                'class' => $class_input,
-                            ],
-                            'month' => [
-                                'class' => $class_input,
-                            ],
-                            'hour' => [
-                                'class' => $class_input,
-                            ],
-                            'minute' => [
-                                'class' => $class_input,
-                            ]
-                        ]);
-                        echo $this->Form->input('habilitado', ['label' => ['class' => $class_label], 'class'=> 'icheck']);
-                        //echo $this->Form->input('creado');
-                        //echo $this->Form->input('modificado');
-                        //echo $this->Form->input('tiene_imagen');
-                        //echo $this->Form->input('tiene_video');
-                        //echo $this->Form->input('localizacion');
-                    ?>
-                <div class="form-group">
-                    <?= $this->Form->button(__('Guardar'),['class' => 'btn btn-primary']) ?>
-                    <?= $this->Form->button(__('Volver'),['class' => 'btn btn-default volver', 'type'=>'button']) ?>
-                </div>
-                <?= $this->Form->end() ?>
+                <?php if (!$resultadoDTO['error']): ?>
+                    <table id="table" class="table table-striped table-bordered" cellspacing="0" width="100%" style="display: none;">                    
+                        <thead>
+                            <tr>
+                                <th><?= $this->Paginator->sort('title', 'Title') ?></th>
+                                <th><?= $this->Paginator->sort('artist', 'Artist') ?></th>
+                                <th><?= $this->Paginator->sort('album', 'Album') ?></th>
+                                <th><?= $this->Paginator->sort('year', 'Year') ?></th>
+                                <th><?= $this->Paginator->sort('genre', 'Genre') ?></th>
+                                <th><?= $this->Paginator->sort('duration', 'Duration') ?></th>                            
+                                <th><?= $this->Paginator->sort('filesize', 'Filesize') ?></th>
+                                <th><?= $this->Paginator->sort('sample_rate', 'Sample Rate') ?></th>
+                                <th><?= $this->Paginator->sort('bitrate', 'Bitrate') ?></th>
+                                <th><?= $this->Paginator->sort('dataformat', 'Format') ?></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($resultadoDTO['listado'] as $cancion): ?>
+                                <tr>
+                                    <td><?= $cancion->title ?></td>
+                                    <td><?= $cancion->artist ?></td>
+                                    <td><?= $cancion->album ?></td>
+                                    <td style="text-align: center; vertical-align: middle;"><?= $this->Number->format($cancion->year) ?></td>
+                                    <td><?= $cancion->genre ?></td>
+                                    <td style="text-align: center; vertical-align: middle;"><?= $cancion->duration ?></td>
+                                    <td style="text-align: center; vertical-align: middle;"><?= $cancion->filesize . ' MB' ?></td>
+                                    <td style="text-align: center; vertical-align: middle;"><?= $cancion->sample_rate ?></td>
+                                    <td style="text-align: center; vertical-align: middle;"><?= $cancion->bitrate . ' Kbps' ?></td>                                
+                                    <td style="text-align: center; vertical-align: middle;"><?= strtoupper($cancion->dataformat) ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                <?php else: ?>
+                    <div class="form-group">
+                        <div style="font-color: red;">
+                            <?= $resultadoDTO['message'] ?>
+                        </div>                        
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
     </div>
@@ -98,40 +66,4 @@
 <?= $this->Html->script(['/assets/plugins/ckeditor/ckeditor.js']) ?>
 <link rel="stylesheet" href="//cdn.jsdelivr.net/bootstrap.tagsinput/0.4.2/bootstrap-tagsinput.css" />
 <?= $this->Html->script(['//cdn.jsdelivr.net/bootstrap.tagsinput/0.4.2/bootstrap-tagsinput.min.js']) ?>
-<script>
-    $(document).ready(function() {        
-        CKEDITOR.replace('texto');
-        
-        $('#bootstrapTagsInputForm')
-        .find('[name="palabras_claves_"]')
-            // Revalidate the cities field when it is changed
-            .end();
-    });
-    
-    function archivo(evt) {
-        $('#imagen-articulo').empty();
-        var files = evt.target.files; // FileList object
-
-        // Obtenemos la imagen del campo "file".
-        for (var i = 0, f; f = files[i]; i++) {           
-            //Solo admitimos imágenes.
-            if (!f.type.match('image.*')) {
-                continue;
-            }
-
-            var reader = new FileReader();
-
-            reader.onload = (function(theFile) {
-                return function(e) {
-                    // Insertamos la/s imagen/es
-                    $("#imagen-articulo").append('<img src="'+e.target.result+'" class="form-group"/>');
-                    
-                };
-          })(f);
-
-          reader.readAsDataURL(f);
-        }        
-    }
-    
-    document.getElementById('filename').addEventListener('change', archivo, false);
-</script>
+<script></script>

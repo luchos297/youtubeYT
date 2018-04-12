@@ -200,28 +200,6 @@ class CancionesController extends AppController{
         return $quality;
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     /**
      * Generar la lista de temas en base a un directorio en particular (obteniendo con tag ID3v3 el artista)	
      *
@@ -229,21 +207,18 @@ class CancionesController extends AppController{
      * @param array DTO con resultado del proceso.
      * @return array mapping Listado de canciones con nombre y artista.
      */
-	public function generarListadoCanciones($resultadoDTO){        
+    public function scan(){
+        $this->checkAuth();
+
         $listado = [];
 
         try{
             $canciones = glob($this->path . "*.{*}", GLOB_BRACE);
 
-            for($i = 0; $i < count($canciones); $i++){
-                $cancion = str_replace(".mp3", "", $canciones[$i]);
-                $name = explode('/', $canciones[$i]);
-                $name = end($name);
-                $name_path = $this->path . DS . $name;
-                
+            for($i = 0; $i < count($canciones); $i++){                
                 //Lectura de tag ID3
                 $id3 = new \getID3();
-                $cancion_id3 = $id3->analyze($name_path);
+                $cancion_id3 = $id3->analyze($canciones[$i]);
                 
                 switch($cancion_id3['fileformat']) { 
                     case "mp3":
@@ -278,7 +253,7 @@ class CancionesController extends AppController{
                         break;
                 }                
 
-                $cancion_procesada = ['url_yt' => '',
+                $cancion_procesada = [
                     'title' => $title, 
                     'artist' => $artist, 
                     'album' => $album, 
@@ -291,6 +266,7 @@ class CancionesController extends AppController{
                     'dataformat' => $dataformat,
                     'video_id' => '',                    
                     'quality' => '',
+                    'url_yt' => '',
                     'url_yt_download' => '',
                     'filename' => '',                    
                     'downloaded' => '',                    
@@ -306,10 +282,32 @@ class CancionesController extends AppController{
             $resultadoDTO = ['error' => true, 'message' => $ex, 'listado' => []];
         }
 
-        return $resultadoDTO;
+        $this->set('resultadoDTO', $resultadoDTO);
+        $this->set('_serialize', ['resultadoDTO']);
     }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 
-	/**
+    /**
      * Revisar que temas ya fueron buscados y solo dejar los nuevos
      *
      * @param array DTO con resultado del proceso, incluyendo un listado (array mapping) de canciones con nombre y artista.
