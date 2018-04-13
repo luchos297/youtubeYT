@@ -220,39 +220,56 @@ class CancionesController extends AppController{
                 $id3 = new \getID3();
                 $cancion_id3 = $id3->analyze($canciones[$i]);
                 
-                switch($cancion_id3['fileformat']) { 
-                    case "mp3":
-                        $data_head = $cancion_id3['tags']['id3v2'];
-                        $data_info = $cancion_id3['audio'];
+                if(isset($cancion_id3['fileformat'])){                
+                    switch($cancion_id3['fileformat']) { 
+                        case "mp3":
+                            $data_head = $cancion_id3['tags']['id3v2'];
+                            $data_info = $cancion_id3['audio'];
 
-                        $title = (array_key_exists('title', $data_head) != false) ? reset($data_head['title']) : "";
-                        $artist = (array_key_exists('artist', $data_head) != false) ? reset($data_head['artist']) : "";
-                        $album = (array_key_exists('album', $data_head) != false) ? reset($data_head['album']) : "";
-                        $year = (array_key_exists('year', $data_head) != false) ? reset($data_head['year']) : 2010;
-                        $genre = (array_key_exists('genre', $data_head) != false) ? reset($data_head['genre']) : "";
-                        $duration = (array_key_exists('playtime_string', $cancion_id3) != false) ? $cancion_id3['playtime_string'] : "";
-                        $filesize = (array_key_exists('filesize', $cancion_id3) != false) ? round(($cancion_id3['filesize'] / 1048576), 2) : 0;
-                        $sample_rate = (array_key_exists('sample_rate', $data_info) != false) ? $data_info['sample_rate'] : 0;
-                        $bitrate = (array_key_exists('bitrate', $data_info) != false) ? round(($data_info['bitrate'] / 1000), 2) : 0;
-                        $dataformat = (array_key_exists('dataformat', $data_info) != false) ? $data_info['dataformat'] : "";                
-                        break;
-                    case "mp4":
-                        $data_head = $cancion_id3['tags']['quicktime'];
-                        $data_info = $cancion_id3['audio'];
+                            $title = (array_key_exists('title', $data_head) != false) ? reset($data_head['title']) : "";
+                            $artist = (array_key_exists('artist', $data_head) != false) ? reset($data_head['artist']) : "";
+                            $album = (array_key_exists('album', $data_head) != false) ? reset($data_head['album']) : "";
+                            $year = (array_key_exists('year', $data_head) != false) ? reset($data_head['year']) : 2010;
+                            $genre = (array_key_exists('genre', $data_head) != false) ? reset($data_head['genre']) : "";
+                            $duration = (array_key_exists('playtime_string', $cancion_id3) != false) ? $cancion_id3['playtime_string'] : "";
+                            $filesize = (array_key_exists('filesize', $cancion_id3) != false) ? round(($cancion_id3['filesize'] / 1048576), 2) : 0  . ' MB';
+                            $sample_rate = (array_key_exists('sample_rate', $data_info) != false) ? $data_info['sample_rate'] : 0;
+                            $bitrate = (array_key_exists('bitrate', $data_info) != false) ? round(($data_info['bitrate'] / 1000), 2) : 0  . ' Kbps';
+                            $dataformat = (array_key_exists('dataformat', $data_info) != false) ? strtoupper($data_info['dataformat']) : "";
+                            $read = 1;
+                            break;
+                        case "mp4":
+                            $data_head = $cancion_id3['tags']['quicktime'];
+                            $data_info = $cancion_id3['audio'];
 
-                        $title = (array_key_exists('title', $data_head) != false) ? reset($data_head['title']) : "";
-                        $artist = (array_key_exists('artist', $data_head) != false) ? reset($data_head['artist']) : "";
-                        $album = (array_key_exists('album', $data_head) != false) ? reset($data_head['album']) : "";
-                        $year = (array_key_exists('year', $data_head) != false) ? reset($data_head['year']) : 2010;
-                        $genre = (array_key_exists('genre', $data_head) != false) ? reset($data_head['genre']) : "";
-                        $duration = (array_key_exists('playtime_string', $cancion_id3) != false) ? $cancion_id3['playtime_string'] : "";
-                        $filesize = (array_key_exists('filesize', $cancion_id3) != false) ? round(($cancion_id3['filesize'] / 1048576), 2) : 0;
-                        $sample_rate = (array_key_exists('sample_rate', $data_info) != false) ? $data_info['sample_rate'] : 0;
-                        $bitrate = (array_key_exists('bitrate', $data_info) != false) ? round(($data_info['bitrate'] / 1000), 2) : 0;
-                        $dataformat = (array_key_exists('dataformat', $data_info) != false) ? $data_info['dataformat'] : "";
-                        break;
-                }                
-
+                            $title = (array_key_exists('title', $data_head) != false) ? reset($data_head['title']) : "";
+                            $artist = (array_key_exists('artist', $data_head) != false) ? reset($data_head['artist']) : "";
+                            $album = (array_key_exists('album', $data_head) != false) ? reset($data_head['album']) : "";
+                            $year = (array_key_exists('year', $data_head) != false) ? reset($data_head['year']) : 2010;
+                            $genre = (array_key_exists('genre', $data_head) != false) ? reset($data_head['genre']) : "";
+                            $duration = (array_key_exists('playtime_string', $cancion_id3) != false) ? $cancion_id3['playtime_string'] : "";
+                            $filesize = (array_key_exists('filesize', $cancion_id3) != false) ? round(($cancion_id3['filesize'] / 1048576), 2) : 0  . ' MB';
+                            $sample_rate = (array_key_exists('sample_rate', $data_info) != false) ? $data_info['sample_rate'] : 0;
+                            $bitrate = (array_key_exists('bitrate', $data_info) != false) ? round(($data_info['bitrate'] / 1000), 2) : 0  . ' Kbps';
+                            $dataformat = (array_key_exists('dataformat', $data_info) != false) ? strtoupper($data_info['dataformat']) : "";
+                            $read = 1;
+                            break;
+                    }                
+                }
+                else {
+                    $title = (array_key_exists('filename', $data_head) != false) ? str_replace(['.mp3', '.mp4'], "", $data_head['filename']) : "";
+                    $artist = "-";
+                    $album = "-";
+                    $year = "-";
+                    $genre = "-";
+                    $duration = "-";
+                    $filesize = (array_key_exists('filesize', $data_head) != false) ? round(($data_head['filesize'] / 1048576), 2) . ' MB' :  '0 MB';
+                    $sample_rate = "-";
+                    $bitrate = "-";
+                    $dataformat = "-";
+                    $read = 0;
+                }
+                
                 $cancion_procesada = [
                     'title' => $title, 
                     'artist' => $artist, 
@@ -270,18 +287,20 @@ class CancionesController extends AppController{
                     'url_yt_download' => '',
                     'filename' => '',                    
                     'downloaded' => '',                    
+                    'read' => $read,
                     'resultado' => ''
                     ];
-                
-                array_push($listado, $cancion_procesada);
+
+                array_push($listado, $cancion_procesada);                
             }            
 
-            $resultadoDTO = ['error' => false, 'message' => NULL, 'listado' => $listado];
+            $resultadoDTO = ['error' => false, 'message' => NULL, 'listado' => $listado];            
         }
         catch (Exception $ex) {
             $resultadoDTO = ['error' => true, 'message' => $ex, 'listado' => []];
         }
-
+        
+        $this->set('path', $this->path);
         $this->set('resultadoDTO', $resultadoDTO);
         $this->set('_serialize', ['resultadoDTO']);
     }

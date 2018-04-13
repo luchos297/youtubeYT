@@ -18,36 +18,49 @@
                     <i class="fa fa-times"></i>
                 </div>
             </div>-->
+            <div class="form-group">
+                <div>
+                    <h4 class="h4" style="margin-top: 10px; margin-left: 10px;">Recuerde que la ruta de lectura es "<b><?= $path ?>"</b></h4>
+                </div>                        
+            </div>
             <div class="panel-body">
                 <?php if (!$resultadoDTO['error']): ?>
-                    <table id="table" class="table table-striped table-bordered" cellspacing="0" width="100%" style="display: none;">                    
+                    <table id="table" class="table table-striped table-bordered" cellspacing="0" width="100%">                    
                         <thead>
                             <tr>
-                                <th><?= $this->Paginator->sort('title', 'Title') ?></th>
-                                <th><?= $this->Paginator->sort('artist', 'Artist') ?></th>
-                                <th><?= $this->Paginator->sort('album', 'Album') ?></th>
-                                <th><?= $this->Paginator->sort('year', 'Year') ?></th>
-                                <th><?= $this->Paginator->sort('genre', 'Genre') ?></th>
-                                <th><?= $this->Paginator->sort('duration', 'Duration') ?></th>                            
-                                <th><?= $this->Paginator->sort('filesize', 'Filesize') ?></th>
-                                <th><?= $this->Paginator->sort('sample_rate', 'Sample Rate') ?></th>
-                                <th><?= $this->Paginator->sort('bitrate', 'Bitrate') ?></th>
-                                <th><?= $this->Paginator->sort('dataformat', 'Format') ?></th>
+                                <th style="vertical-align: middle;"><?= $this->Paginator->sort('title', 'Title') ?></th>
+                                <th style="vertical-align: middle;"><?= $this->Paginator->sort('artist', 'Artist') ?></th>
+                                <th style="vertical-align: middle;"><?= $this->Paginator->sort('album', 'Album') ?></th>
+                                <th style="vertical-align: middle;"><?= $this->Paginator->sort('year', 'Year') ?></th>
+                                <th style="vertical-align: middle;"><?= $this->Paginator->sort('genre', 'Genre') ?></th>
+                                <th style="vertical-align: middle;"><?= $this->Paginator->sort('duration', 'Duration') ?></th>                            
+                                <th style="vertical-align: middle;"><?= $this->Paginator->sort('filesize', 'Filesize') ?></th>
+                                <th style="vertical-align: middle;"><?= $this->Paginator->sort('sample_rate', 'Sample Rate') ?></th>
+                                <th style="vertical-align: middle;"><?= $this->Paginator->sort('bitrate', 'Bitrate') ?></th>
+                                <th style="vertical-align: middle;"><?= $this->Paginator->sort('dataformat', 'Format') ?></th>
+                                <th style="vertical-align: middle;"><?= $this->Paginator->sort('read', 'Read') ?></th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody style="font-size: 13px;">
                             <?php foreach ($resultadoDTO['listado'] as $cancion): ?>
                                 <tr>
-                                    <td><?= $cancion->title ?></td>
-                                    <td><?= $cancion->artist ?></td>
-                                    <td><?= $cancion->album ?></td>
-                                    <td style="text-align: center; vertical-align: middle;"><?= $this->Number->format($cancion->year) ?></td>
-                                    <td><?= $cancion->genre ?></td>
-                                    <td style="text-align: center; vertical-align: middle;"><?= $cancion->duration ?></td>
-                                    <td style="text-align: center; vertical-align: middle;"><?= $cancion->filesize . ' MB' ?></td>
-                                    <td style="text-align: center; vertical-align: middle;"><?= $cancion->sample_rate ?></td>
-                                    <td style="text-align: center; vertical-align: middle;"><?= $cancion->bitrate . ' Kbps' ?></td>                                
-                                    <td style="text-align: center; vertical-align: middle;"><?= strtoupper($cancion->dataformat) ?></td>
+                                    <td style="vertical-align: middle;"><?= $cancion['title'] ?></td>
+                                    <td style="vertical-align: middle;"><?= $cancion['artist'] ?></td>
+                                    <td style="vertical-align: middle;"><?= $cancion['album'] ?></td>
+                                    <td style="text-align: center; vertical-align: middle;"><?= $this->Number->format($cancion['year']) ?></td>
+                                    <td style="vertical-align: middle;"><?= $cancion['genre'] ?></td>
+                                    <td style="text-align: center; vertical-align: middle;"><?= $cancion['duration'] ?></td>
+                                    <td style="text-align: center; vertical-align: middle;"><?= $cancion['filesize'] ?></td>
+                                    <td style="text-align: center; vertical-align: middle;"><?= $cancion['sample_rate'] ?></td>
+                                    <td style="text-align: center; vertical-align: middle;"><?= $cancion['bitrate'] ?></td>                                
+                                    <td style="text-align: center; vertical-align: middle;"><?= strtoupper($cancion['dataformat']) ?></td>
+                                    <td style="text-align: center; vertical-align: middle;">                                    
+                                        <?php if ($cancion['read'] == 1):
+                                            echo $this->Html->image(Cake\Core\Configure::read('path_imagen_icons') . 'tick.png');
+                                        else: 
+                                            echo $this->Html->image(Cake\Core\Configure::read('path_imagen_icons') . 'error.png');
+                                        endif; ?>
+                                    </td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
