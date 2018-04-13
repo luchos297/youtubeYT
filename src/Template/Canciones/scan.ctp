@@ -20,7 +20,7 @@
             </div>-->
             <div class="form-group">
                 <div>
-                    <h4 class="h4" style="margin-top: 10px; margin-left: 10px;">Recuerde que la ruta de lectura es "<b><?= $path ?>"</b></h4>
+                    <h4 class="h4" style="margin-top: 10px; margin-left: 10px;">Recuerde que la ruta de lectura es <b>"<?= $path ?>"</b></h4>
                 </div>                        
             </div>
             <div class="panel-body">
