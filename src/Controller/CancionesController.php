@@ -257,7 +257,7 @@ class CancionesController extends AppController{
                     }                
                 }
                 else {
-                    $title = (array_key_exists('filename', $data_head) != false) ? str_replace(['.mp3', '.mp4'], "", $data_head['filename']) : "";
+                    $title = (array_key_exists('filename', $data_head) != false) ? str_replace(['.mp3', '.mp4'], "", $data_head['filename']) : "-";
                     $artist = "-";
                     $album = "-";
                     $year = "-";
